@@ -1,7 +1,5 @@
 @extends('layouts.app')
 
-@section('title', 'Gestión de Dependencias')
-
 @section('content')
 <div class="container py-5">
     <div class="card shadow-sm border-0 rounded-3">
@@ -20,38 +18,28 @@
                 </div>
             @endif
 
-            @if ($dependencias->count())
-                <div class="table-responsive">
-                    <table class="table table-striped align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Código</th>
-                                <th>Nombre</th>
-                                <th>Ubicación</th>
-                                <th>Responsable</th>
-                                <th>Teléfono</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($dependencias as $dep)
-                                <tr>
-                                    <td>{{ $dep->codigo }}</td>
-                                    <td>{{ $dep->nombre }}</td>
-                                    <td>{{ $dep->ubicacion ?? '-' }}</td>
-                                    <td>{{ $dep->responsable ?? '-' }}</td>
-                                    <td>{{ $dep->telefono ?? '-' }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="mt-3">
-                    {{ $dependencias->links() }}
-                </div>
-            @else
-                <p class="text-center text-muted">No hay dependencias registradas.</p>
-            @endif
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Ubicación</th>
+                        <th>Responsable</th>
+                        <th>Teléfono</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($dependencias as $dep)
+                        <tr>
+                            <td>{{ $dep->codigo }}</td>
+                            <td>{{ $dep->nombre }}</td>
+                            <td>{{ $dep->ubicacion }}</td>
+                            <td>{{ $dep->responsable }}</td>
+                            <td>{{ $dep->telefono }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
