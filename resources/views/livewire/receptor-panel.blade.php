@@ -1,5 +1,6 @@
 {{-- resources/views/livewire/receptor-panel.blade.php --}}
 <div>
+    
     <!-- Page Header -->
     <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900">Panel de Receptor</h1>
@@ -19,7 +20,9 @@
     @endif
 
     <!-- Formulario de Registro -->
+     
     <div class="bg-gray-50 rounded-lg p-6">
+
         <div class="mb-6">
             <div class="flex items-center space-x-2 mb-2">
                 <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,210 +33,295 @@
             <p class="text-sm text-gray-600">Complete los datos obligatorios para dar de alta un nuevo bien</p>
         </div>
 
+@if($mostrarRegistros)
+<div class="bg-white rounded-lg shadow p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+            <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M3 7h18M3 12h18m-9 5h9"/>
+            </svg>
+            Bienes Registrados
+        </h2>
+        <button wire:click="volverAlFormulario" 
+            class="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-800">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M15 19l-7-7 7-7" />
+            </svg>
+            <span>Volver</span>
+        </button>
+    </div>
+
+    <table class="min-w-full border border-gray-200 text-sm">
+    <thead class="bg-gray-100 text-gray-700">
+        <tr>
+            <th class="px-3 py-2 text-left">#</th>
+            <th class="px-3 py-2 text-left">N° Remito</th>
+            <th class="px-3 py-2 text-left">Expediente</th>
+            <th class="px-3 py-2 text-left">Orden de Provisión</th>
+            <th class="px-3 py-2 text-left">Descripción</th>
+            <th class="px-3 py-2 text-left">Cuenta</th>
+            <th class="px-3 py-2 text-left">Cantidad</th>
+            <th class="px-3 py-2 text-left">Precio Unitario</th>
+            <th class="px-3 py-2 text-left">Monto Total</th>
+            <th class="px-3 py-2 text-left">Proveedor</th>
+            <th class="px-3 py-2 text-left">Fecha Recepción</th>
+        </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+        @forelse($bienes as $index => $bien)
+            <tr>
+                <td class="px-3 py-2">{{ $index + 1 }}</td>
+                <td class="px-3 py-2">{{ $bien->remito->numero_remito ?? '-' }}</td>
+                <td class="px-3 py-2">{{ $bien->remito->numero_expediente ?? '-' }}</td>
+                <td class="px-3 py-2">{{ $bien->remito->orden_provision ?? '-' }}</td>
+                <td class="px-3 py-2">{{ $bien->descripcion }}</td>
+                <td class="px-3 py-2">{{ $bien->cuenta->descripcion ?? '-' }}</td>
+                <td class="px-3 py-2">{{ $bien->cantidad }}</td>
+                <td class="px-3 py-2">${{ number_format($bien->precio_unitario, 2) }}</td>
+                <td class="px-3 py-2">${{ number_format($bien->monto_total, 2) }}</td>
+                <td class="px-3 py-2">{{ $bien->proveedor->razon_social ?? '-' }}</td>
+                <td class="px-3 py-2">
+                    {{ \Carbon\Carbon::parse($bien->remito->fecha_recepcion ?? $bien->fecha_recepcion)->format('d/m/Y') }}
+                </td>
+            </tr>
+        @empty
+            <tr>
+                <td colspan="11" class="text-center py-4 text-gray-500">
+                    No hay bienes registrados.
+                </td>
+            </tr>
+        @endforelse
+    </tbody>
+</table>
+</div>
+@endif
+
         <form wire:submit.prevent="registrarBien">
-            <!-- Primera fila: N° de Remito, N° de Expediente, Orden de Provisión -->
-            <div class="grid grid-cols-3 gap-4 mb-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">N° de Remito</label>
-                    <input 
-                        type="text" 
-                        wire:model="numero_remito"
-                        placeholder="REM-2024-0000"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
+          <!-- 🔹 Datos del Remito -->
+           <!-- 🔹 Botón Ver Registros -->
+<div class="flex justify-end mb-4">
+    <button 
+        type="button" 
+        wire:click="verRegistros"
+        class="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2H9z"/>
+        </svg>
+        <span>Ver Registros</span>
+    </button>
+</div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">N° de Expediente</label>
-                    <input 
-                        type="text" 
-                        wire:model="numero_expediente"
-                        placeholder="EXP-2024-0000"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
+<div class="mb-6">
+    <!-- Encabezado -->
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Orden de Provisión</label>
-                    <input 
-                        type="text" 
-                        wire:model="orden_provision"
-                        placeholder="OP-2024-0000"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
+    <!-- Recuadro con los tres campos -->
+    <div class="bg-gray-50 border border-gray-200 rounded-lg p-5 shadow-sm">
+        <div class="flex items-center gap-2 mb-2">
+        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M7 8h10M7 12h10m-5 4h5m2 4H5a2 2 0 01-2-2V6a2 2 0 
+                     012-2h9l5 5v11a2 2 0 01-2 2z"/>
+        </svg>
+        <h3 class="text-base font-semibold text-gray-800">Datos del Remito</h3>
+    </div>
+        <div class="grid grid-cols-3 gap-6">
+            <div>
+                <label class="text-sm font-medium text-gray-700">
+                    N° de Remito<span class="text-red-500">*</span>
+                </label>
+                <input
+                    type="text"
+                    wire:model="numero_remito"
+                    placeholder="REM-2024-0000"
+                    class="w-full mt-1 border-gray-200 bg-white rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
             </div>
 
-            <!-- Segunda fila: Cuenta del Bien, N° de Inventario, Cantidad -->
-            <div class="grid grid-cols-3 gap-4 mb-4">
+            <div>
+                <label class="text-sm font-medium text-gray-700">
+                    N° de Expediente<span class="text-red-500">*</span>
+                </label>
+                <input
+                    type="text"
+                    wire:model="numero_expediente"
+                    placeholder="EXP-2024-0000"
+                    class="w-full mt-1 border-gray-200 bg-white rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+
+            <div>
+                <label class="text-sm font-medium text-gray-700">
+                    Orden de Provisión<span class="text-red-500">*</span>
+                </label>
+                <input
+                    type="text"
+                    wire:model="orden_provision"
+                    placeholder="OP-2024-0000"
+                    class="w-full mt-1 border-gray-200 bg-white rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+        </div>
+    </div>
+</div>
+
+          <!-- 🔹 Información del Bien -->
+<div class="mb-6">
+    <div class="bg-gray-50 border border-gray-200 rounded-lg p-5 shadow-sm space-y-6">
+
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 7h18M3 12h18m-9 5h9"/>
+                </svg>
+                <h3 class="text-base font-semibold text-gray-800">Información del Bien</h3>
+            </div>
+
+            <!-- 🔘 Botón para agregar nuevo bien -->
+            <button 
+                type="button"
+                wire:click="agregarFormulario"
+                class="flex items-center gap-1 px-3 py-1 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
+                <span>Agregar</span>
+            </button>
+        </div>
+
+        <!-- 🔁 Se repite un formulario por cada bien -->
+        @foreach($formularios as $index => $form)
+        <div class="border border-gray-200 rounded-lg p-5 bg-white space-y-6 relative">
+
+            <!-- 🗑️ Botón para eliminar formulario -->
+            @if(count($formularios) > 1)
+    <button 
+        type="button"
+        wire:click="eliminarFormulario({{ $index }})"
+        class="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 text-xs bg-red-50 text-red-600 border border-red-200 rounded-md hover:bg-red-100 hover:text-red-700 transition"
+        title="Eliminar este bien">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-9 0h10"/>
+        </svg>
+        <span>Eliminar</span>
+    </button>
+@endif
+
+
+            <div class="grid grid-cols-3 gap-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Cuenta del Bien <span class="text-red-500">*</span>
-                    </label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Cuenta del Bien *</label>
                     <select 
-                        wire:model="cuenta_id"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required>
+                        wire:model="formularios.{{ $index }}.cuenta_id"
+                        class="w-full px-3 py-2 border-gray-200 bg-white rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                         <option value="">Seleccione cuenta</option>
                         @foreach($cuentas as $cuenta)
                             <option value="{{ $cuenta->id }}">{{ $cuenta->codigo }} - {{ $cuenta->descripcion }}</option>
                         @endforeach
                     </select>
-                    @error('cuenta_id') 
-                        <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> 
-                    @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Número de Inventario Inicial <span class="text-red-500">*</span>
-                    </label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">N° Inventario Inicial *</label>
                     <input 
                         type="text" 
-                        wire:model="numero_inventario"
-                        placeholder="Ej: Rg 001 451-9743"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required>
-                    <p class="text-xs text-gray-500 mt-1">El número correlativo se incrementará automáticamente según la cantidad ingresada</p>
-                    @error('numero_inventario') 
-                        <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> 
-                    @enderror
+                        wire:model="formularios.{{ $index }}.numero_inventario"
+                        placeholder="Ej: RG-001-9743"
+                        class="w-full px-3 py-2 border-gray-200 bg-white rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Cantidad <span class="text-red-500">*</span>
-                    </label>
-                    <input 
-                        type="number" 
-                        wire:model.live="cantidad"
-                        placeholder="Ej: 5"
-                        min="1"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required>
-                    @error('cantidad') 
-                        <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> 
-                    @enderror
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad *</label>
+                    <input
+    type="number" 
+    wire:model.live="formularios.{{ $index }}.cantidad"
+    min="1"
+    class="w-full px-3 py-2 border-gray-200 bg-white rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+    placeholder="Ej: 5">
                 </div>
             </div>
 
-            <!-- Tercera fila: Descripción del Bien -->
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Descripción del Bien <span class="text-red-500">*</span>
-                </label>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Descripción *</label>
                 <textarea 
-                    wire:model="descripcion"
-                    rows="3"
-                    placeholder="Ej: Silla ergonómica tapizada negra con apoyabrazos"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required></textarea>
-                @error('descripcion') 
-                    <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> 
-                @enderror
+                    wire:model="formularios.{{ $index }}.descripcion"
+                    rows="2"
+                    placeholder="Ej: Silla ergonómica negra con apoyabrazos"
+                    class="w-full px-3 py-2 border-gray-200 bg-white rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
             </div>
 
-            <!-- Cuarta fila: Precio Unitario, Monto Total, Fecha de Recepción -->
-            <div class="grid grid-cols-3 gap-4 mb-4">
+            <div class="grid grid-cols-3 gap-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Precio Unitario <span class="text-red-500">*</span>
-                    </label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Precio Unitario *</label>
                     <input 
-                        type="number" 
-                        wire:model.live="precio_unitario"
-                        placeholder="Ej: 1500.00"
-                        step="0.01"
-                        min="0"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required>
-                    @error('precio_unitario') 
-                        <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> 
-                    @enderror
+    type="number" 
+    wire:model.lazy="formularios.{{ $index }}.precio_unitario"
+    step="0.01"
+    min="0"
+    placeholder="Ej: 1500.00"
+    class="w-full px-3 py-2 border-gray-200 bg-white rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Monto Total <span class="text-red-500">*</span>
-                    </label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Monto Total *</label>
                     <input 
-                        type="number" 
-                        wire:model="monto_total"
-                        placeholder="Ej: 7500.00"
-                        step="0.01"
-                        min="0"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-100"
-                        readonly>
-                    @error('monto_total') 
-                        <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> 
-                    @enderror
+    type="number" 
+    wire:model="formularios.{{ $index }}.monto_total"
+    readonly
+    class="w-full px-3 py-2 border-gray-200 bg-gray-100 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Fecha de Recepción <span class="text-red-500">*</span>
-                    </label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Recepción *</label>
                     <input 
                         type="date" 
-                        wire:model="fecha_recepcion"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required>
-                    @error('fecha_recepcion') 
-                        <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> 
-                    @enderror
+                        wire:model="formularios.{{ $index }}.fecha_recepcion"
+                        class="w-full px-3 py-2 border-gray-200 bg-white rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
             </div>
 
-            <!-- Quinta fila: Proveedor, Foto del Remito -->
-            <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="grid grid-cols-2 gap-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Proveedor <span class="text-red-500">*</span>
-                    </label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor *</label>
                     <select 
-                        wire:model="proveedor_id"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required>
+                        wire:model="formularios.{{ $index }}.proveedor_id"
+                        class="w-full px-3 py-2 border-gray-200 bg-white rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                         <option value="">Seleccione proveedor</option>
                         @foreach($proveedores as $proveedor)
                             <option value="{{ $proveedor->id }}">{{ $proveedor->razon_social }}</option>
                         @endforeach
                     </select>
-                    @error('proveedor_id') 
-                        <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> 
-                    @enderror
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Foto del Remito</label>
                     <input 
                         type="file" 
-                        wire:model="foto_remito"
+                        wire:model="formularios.{{ $index }}.foto_remito"
                         accept="image/*"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-2 border-gray-200 bg-white rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
             </div>
 
-            <!-- Sexta fila: Tipo de Bien y Tipo de Compra -->
-            <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="grid grid-cols-2 gap-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Tipo de Bien <span class="text-red-500">*</span>
-                    </label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Bien *</label>
                     <div class="space-y-2">
                         <label class="flex items-center">
                             <input 
                                 type="radio" 
-                                wire:model="tipo_bien"
+                                wire:model="formularios.{{ $index }}.tipo_bien"
                                 value="uso"
-                                class="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                class="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
                                 checked>
-                            <span class="ml-2 text-sm text-gray-700">Bien de Uso (perdurable en el tiempo)</span>
+                            <span class="ml-2 text-sm text-gray-700">Bien de Uso</span>
                         </label>
                         <label class="flex items-center">
                             <input 
                                 type="radio" 
-                                wire:model="tipo_bien"
+                                wire:model="formularios.{{ $index }}.tipo_bien"
                                 value="consumo"
-                                class="w-4 h-4 text-blue-600 focus:ring-blue-500">
-                            <span class="ml-2 text-sm text-gray-700">Bien de Consumo (vida útil corta)</span>
+                                class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+                            <span class="ml-2 text-sm text-gray-700">Bien de Consumo</span>
                         </label>
                     </div>
                 </div>
@@ -244,14 +332,19 @@
                         <label class="flex items-center">
                             <input 
                                 type="checkbox" 
-                                wire:model="compra_licitacion"
-                                class="w-4 h-4 text-blue-600 focus:ring-blue-500 rounded">
+                                wire:model="formularios.{{ $index }}.compra_licitacion"
+                                class="w-4 h-4 text-indigo-600 focus:ring-indigo-500 rounded">
                             <span class="ml-2 text-sm text-gray-700">Compra por Licitación</span>
                         </label>
                         <p class="text-xs text-gray-500 mt-1">Si no está marcado, se considera Compra Directa</p>
                     </div>
                 </div>
             </div>
+        </div>
+        @endforeach
+    </div>
+</div>
+
 
             <!-- Botones -->
             <div class="flex justify-end space-x-3">
@@ -273,13 +366,5 @@
         </form>
     </div>
 
-    <!-- Botón Ver Registros (opcional) -->
-    <div class="mt-6 flex justify-end">
-        <a href="#" class="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-            </svg>
-            <span>Ver Registros</span>
-        </a>
-    </div>
+    
 </div>
