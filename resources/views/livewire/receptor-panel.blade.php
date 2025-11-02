@@ -54,46 +54,93 @@
     </div>
 
     <table class="min-w-full border border-gray-200 text-sm">
-    <thead class="bg-gray-100 text-gray-700">
-        <tr>
-            <th class="px-3 py-2 text-left">#</th>
-            <th class="px-3 py-2 text-left">N° Remito</th>
-            <th class="px-3 py-2 text-left">Expediente</th>
-            <th class="px-3 py-2 text-left">Orden de Provisión</th>
-            <th class="px-3 py-2 text-left">Descripción</th>
-            <th class="px-3 py-2 text-left">Cuenta</th>
-            <th class="px-3 py-2 text-left">Cantidad</th>
-            <th class="px-3 py-2 text-left">Precio Unitario</th>
-            <th class="px-3 py-2 text-left">Monto Total</th>
-            <th class="px-3 py-2 text-left">Proveedor</th>
-            <th class="px-3 py-2 text-left">Fecha Recepción</th>
+    <thead class="bg-gray-100">
+    <tr>
+        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">#</th>
+        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">N° Remito</th>
+        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">N° Inventario</th>
+        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Expediente</th>
+        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Orden de Provisión</th>
+        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Descripción</th>
+        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Cuenta</th>
+        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Cantidad</th>
+        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Precio Unitario</th>
+        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Monto Total</th>
+        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Proveedor</th>
+        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Fecha Recepción</th>
+    </tr>
+</thead>
+
+<tbody>
+    @foreach ($bienes as $index => $bien)
+        <tr class="border-b">
+            <td class="px-4 py-2 text-sm text-gray-800">{{ $index + 1 }}</td>
+
+            <!-- N° Remito -->
+            <td class="px-4 py-2 text-sm text-gray-800">
+                {{ $bien->remito->numero_remito ?? '-' }}
+            </td>
+
+            <!-- N° Inventario -->
+            <td class="px-4 py-2 text-sm text-gray-800">
+                {{ $bien->numero_inventario ?? '-' }}
+            </td>
+
+            <!-- Expediente -->
+<td class="px-4 py-2 text-sm text-gray-800">
+    {{ $bien->remito->numero_expediente ?? '-' }}
+</td>
+
+            <!-- Orden de Provisión -->
+<td class="px-4 py-2 text-sm text-gray-800">
+    {{ $bien->remito->orden_provision ?? '-' }}
+</td>
+
+            <!-- Descripción -->
+            <td class="px-4 py-2 text-sm text-gray-800">
+                {{ $bien->descripcion ?? '-' }}
+            </td>
+
+            <!-- Cuenta -->
+            <td class="px-4 py-2 text-sm text-gray-800">
+                {{ $bien->cuenta->descripcion ?? $bien->cuenta->codigo ?? '-' }}
+            </td>
+
+            <!-- Cantidad -->
+            <td class="px-4 py-2 text-sm text-gray-800">
+                {{ $bien->cantidad }}
+            </td>
+
+            <!-- Precio Unitario -->
+            <td class="px-4 py-2 text-sm text-gray-800">
+                ${{ number_format($bien->precio_unitario, 2, ',', '.') }}
+            </td>
+
+            <!-- Monto Total -->
+            <td class="px-4 py-2 text-sm text-gray-800">
+                ${{ number_format($bien->monto_total, 2, ',', '.') }}
+            </td>
+
+            <!-- Proveedor -->
+            <td class="px-4 py-2 text-sm text-gray-800">
+                {{ $bien->proveedor->razon_social ?? '-' }}
+            </td>
+
+            <!-- Fecha Recepción -->
+            <td class="px-4 py-2 text-sm text-gray-800">
+                {{ optional($bien->remito)->fecha_recepcion
+                    ? \Carbon\Carbon::parse($bien->remito->fecha_recepcion)->format('d/m/Y')
+                    : '-' }}
+            </td>
         </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-100">
-        @forelse($bienes as $index => $bien)
-            <tr>
-                <td class="px-3 py-2">{{ $index + 1 }}</td>
-                <td class="px-3 py-2">{{ $bien->remito->numero_remito ?? '-' }}</td>
-                <td class="px-3 py-2">{{ $bien->remito->numero_expediente ?? '-' }}</td>
-                <td class="px-3 py-2">{{ $bien->remito->orden_provision ?? '-' }}</td>
-                <td class="px-3 py-2">{{ $bien->descripcion }}</td>
-                <td class="px-3 py-2">{{ $bien->cuenta->descripcion ?? '-' }}</td>
-                <td class="px-3 py-2">{{ $bien->cantidad }}</td>
-                <td class="px-3 py-2">${{ number_format($bien->precio_unitario, 2) }}</td>
-                <td class="px-3 py-2">${{ number_format($bien->monto_total, 2) }}</td>
-                <td class="px-3 py-2">{{ $bien->proveedor->razon_social ?? '-' }}</td>
-                <td class="px-3 py-2">
-                    {{ \Carbon\Carbon::parse($bien->remito->fecha_recepcion ?? $bien->fecha_recepcion)->format('d/m/Y') }}
-                </td>
-            </tr>
-        @empty
-            <tr>
-                <td colspan="11" class="text-center py-4 text-gray-500">
-                    No hay bienes registrados.
-                </td>
-            </tr>
-        @endforelse
-    </tbody>
+    @endforeach
+</tbody>
+
+
+</table>
+</div>
+
+
 </table>
 </div>
 @endif

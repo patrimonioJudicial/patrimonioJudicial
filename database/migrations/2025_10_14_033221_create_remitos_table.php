@@ -11,9 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('remitos', function (Blueprint $table) {
-            $table->string('numero_expediente', 50)->nullable()->after('numero_remito');
-            $table->string('orden_provision', 50)->nullable()->after('numero_expediente');
+        Schema::create('remitos', function (Blueprint $table) {
+            $table->id();
+            $table->string('numero_remito', 50)->unique();
+            $table->string('numero_expediente', 50)->nullable(); // ✅ nuevo campo
+            $table->string('orden_provision', 50)->nullable();    // ✅ nuevo campo
+            $table->date('fecha_recepcion');
+            $table->string('foto_remito', 255)->nullable();
+            $table->enum('tipo_compra', ['directa', 'licitacion'])->default('directa');
+            $table->foreignId('proveedor_id')->constrained('proveedores')->onUpdate('cascade');
+            $table->foreignId('user_id')->constrained('users')->onUpdate('cascade');
+            $table->timestamps();
+            $table->index('numero_remito');
         });
     }
 
@@ -22,10 +31,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('remitos', function (Blueprint $table) {
-            $table->foreignId('orden_provision_id')->constrained('ordenes_provision')->onUpdate('cascade');
-            $table->dropColumn(['numero_expediente', 'orden_provision']);
-        });
+        Schema::dropIfExists('remitos');
     }
 };
+
 

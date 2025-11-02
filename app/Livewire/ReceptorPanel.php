@@ -24,6 +24,7 @@ class ReceptorPanel extends Component
     public $proveedor_id = '';
     public $tipo_compra = 'directa'; // o licitacion
     public $mostrarRegistros = false;
+    public $editandoBien = null;
 
 
     public function mount()
@@ -79,10 +80,21 @@ class ReceptorPanel extends Component
 
     public function registrarBien()
 {
-    // Verificar si ya existe el remito
+    // Buscar si el remito ya existe
     $remito = Remito::where('numero_remito', $this->numero_remito)->first();
 
-    if (!$remito) {
+    if ($remito) {
+        // 🔹 Si existe, actualiza los datos
+        $remito->update([
+            'numero_expediente' => $this->numero_expediente,
+            'orden_provision'   => $this->orden_provision,
+            'fecha_recepcion'   => $this->formularios[0]['fecha_recepcion'],
+            'tipo_compra'       => $this->formularios[0]['compra_licitacion'] ? 'licitacion' : 'directa',
+            'proveedor_id'      => $this->formularios[0]['proveedor_id'],
+            'user_id'           => Auth::id(),
+        ]);
+    } else {
+        // 🔹 Si no existe, lo crea
         $remito = Remito::create([
             'numero_remito'     => $this->numero_remito,
             'numero_expediente' => $this->numero_expediente,
@@ -94,7 +106,7 @@ class ReceptorPanel extends Component
         ]);
     }
 
-    // Luego crear los bienes
+    // 🔹 Crear los bienes asociados
     foreach ($this->formularios as $form) {
         [$prefijo, $numeroBase] = explode('-', $form['numero_inventario']);
         $numeroBase = intval($numeroBase);
@@ -117,20 +129,11 @@ class ReceptorPanel extends Component
             ]);
         }
     }
-    $this->validate([
-    'numero_remito' => 'required',
-    'numero_expediente' => 'required',
-    'orden_provision' => 'required',
-], [
-    'numero_remito.required' => 'Debe ingresar el número de remito.',
-    'numero_expediente.required' => 'Debe ingresar el número de expediente.',
-    'orden_provision.required' => 'Debe ingresar la orden de provisión.',
-]);
-
 
     session()->flash('message', 'Bienes registrados correctamente');
     $this->formularios = [$this->formularioVacio()];
 }
+
 
 
     public function cancelar()
@@ -159,6 +162,41 @@ public function verRegistros()
         ->get();
 
     $this->mostrarRegistros = true;
+}
+
+// 🔹 Eliminar un bien
+public function eliminarBien($id)
+{
+    $bien = Bien::find($id);
+    if ($bien) {
+        $bien->delete();
+        session()->flash('message', '🗑️ Bien eliminado correctamente.');
+    }
+    $this->verRegistros(); // refresca la tabla
+}
+
+// 🔹 Cargar datos para edición
+public function editarBien($id)
+{
+    $this->editandoBien = Bien::find($id);
+}
+
+// 🔹 Guardar cambios
+public function actualizarBien()
+{
+    if ($this->editandoBien) {
+        $this->validate([
+            'editandoBien.descripcion' => 'required|string|max:255',
+            'editandoBien.precio_unitario' => 'required|numeric|min:0',
+            'editandoBien.monto_total' => 'required|numeric|min:0',
+        ]);
+
+        $this->editandoBien->save();
+
+        session()->flash('message', '✏️ Bien actualizado correctamente.');
+        $this->editandoBien = null;
+        $this->verRegistros(); // recargar lista
+    }
 }
 
 }
