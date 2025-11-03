@@ -12,7 +12,7 @@ use Illuminate\View\View;
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Display the login view.
+     * Muestra la vista de login.
      */
     public function create(): View
     {
@@ -20,28 +20,52 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Handle an incoming authentication request.
+     * Maneja la autenticación del usuario.
      */
-    public function store(LoginRequest $request): RedirectResponse
-    {
-        $request->authenticate();
+public function store(LoginRequest $request): RedirectResponse
+{
+    $request->authenticate();
+    $request->session()->regenerate();
 
-        $request->session()->regenerate();
+    $user = Auth::user();
+    $rol = $user->rol?->nombre;
 
-        return redirect()->intended(route('dashboard', absolute: false));
+    // 🔹 Redirección según el rol del usuario
+    switch ($rol) {
+        case 'administrador':
+            return redirect()->route('admin.panel');
+
+        case 'recepcionista':
+            return redirect()->route('receptor.panel');
+
+        case 'gestorInventario':
+            return redirect()->route('gestor.panel');
+
+        case 'dataEntry':
+            return redirect()->route('dataentry.panel');
+
+        case 'consultor':
+            return redirect()->route('consultor.panel');
+
+        default:
+            // Si no tiene rol válido, lo mandamos al login con error
+            Auth::logout();
+            return redirect()->route('login')->withErrors([
+                'email' => 'Tu rol no tiene acceso asignado al sistema.',
+            ]);
     }
+}
 
     /**
-     * Destroy an authenticated session.
+     * Cierra la sesión de usuario.
      */
-    public function destroy(Request $request): RedirectResponse
-    {
-        Auth::guard('web')->logout();
+public function destroy(Request $request): RedirectResponse
+{
+    Auth::guard('web')->logout();
 
-        $request->session()->invalidate();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
 
-        $request->session()->regenerateToken();
-
-        return redirect('/');
-    }
+    return redirect()->route('login');
+}
 }

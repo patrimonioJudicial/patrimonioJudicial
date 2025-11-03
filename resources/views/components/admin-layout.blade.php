@@ -1,13 +1,17 @@
-{{-- resources/views/components/admin-layout.blade.php --}}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestión Patrimonial</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    {{-- Primero los estilos de Livewire --}}
     @livewireStyles
+
+    {{-- Luego Vite (CSS y JS) --}}
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
+
 <body class="bg-gray-50">
     <!-- Header -->
     <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -59,6 +63,7 @@
         {{ $slot }}
     </main>
 
+    {{-- Scripts de Livewire deben ir AL FINAL --}}
     @livewireScripts
 </body>
 </html>
