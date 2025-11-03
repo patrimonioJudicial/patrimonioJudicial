@@ -1,18 +1,46 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Livewire\AdminPanel;
 use App\Livewire\ReceptorPanel;
+use App\Livewire\GestorInventario;
+use App\Livewire\DataentryPanel;
+use App\Livewire\ConsultorPanel;
 use App\Http\Controllers\ProfileController;
 
-// Página principal (pública)
-Route::get('/', fn() => view('welcome'));
+/*
+|--------------------------------------------------------------------------
+| Redirección inicial inteligente
+|--------------------------------------------------------------------------
+|
+| Si el usuario está autenticado, lo lleva directo a su panel según el rol.
+| Si no lo está, muestra la página de login.
+|
+*/
+Route::get('/', function () {
+    if (Auth::check()) {
+        $rol = Auth::user()->rol?->nombre;
 
-// Dashboard para usuarios comunes (rol por defecto)
-Route::middleware(['auth', 'verified'])
-    ->get('/dashboard', fn() => view('dashboard'))
-    ->name('dashboard');
+        return match ($rol) {
+            'administrador'     => redirect()->route('admin.panel'),
+            'recepcionista'     => redirect()->route('receptor.panel'),
+            'gestorInventario'  => redirect()->route('gestor.panel'),
+            'dataEntry'         => redirect()->route('dataentry.panel'),
+            'consultor'         => redirect()->route('consultor.panel'),
+            default             => redirect()->route('login'),
+        };
+    }
 
+    return redirect()->route('login');
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| Rutas por rol
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'rol:administrador'])
     ->prefix('admin')
     ->name('admin.')
@@ -27,7 +55,33 @@ Route::middleware(['auth', 'rol:recepcionista'])
         Route::get('/', ReceptorPanel::class)->name('panel');
     });
 
-// PERFIL DE USUARIO
+Route::middleware(['auth', 'rol:gestorInventario'])
+    ->prefix('gestor')
+    ->name('gestor.')
+    ->group(function () {
+        Route::get('/', GestorInventario::class)->name('panel');
+    });
+
+Route::middleware(['auth', 'rol:dataEntry'])
+    ->prefix('dataentry')
+    ->name('dataentry.')
+    ->group(function () {
+        Route::get('/', DataentryPanel::class)->name('panel');
+    });
+
+Route::middleware(['auth', 'rol:consultor'])
+    ->prefix('consultor')
+    ->name('consultor.')
+    ->group(function () {
+        Route::get('/', ConsultorPanel::class)->name('panel');
+    });
+
+
+/*
+|--------------------------------------------------------------------------
+| Perfil del usuario autenticado
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -35,6 +89,9 @@ Route::middleware('auth')->group(function () {
 });
 
 
-
-// Auth (login, registro, etc.)
+/*
+|--------------------------------------------------------------------------
+| Autenticación (login, registro, etc.)
+|--------------------------------------------------------------------------
+*/
 require __DIR__.'/auth.php';

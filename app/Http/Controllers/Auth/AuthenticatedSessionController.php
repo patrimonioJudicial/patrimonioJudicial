@@ -22,16 +22,15 @@ class AuthenticatedSessionController extends Controller
     /**
      * Maneja la autenticación del usuario.
      */
-   public function store(LoginRequest $request): RedirectResponse
+public function store(LoginRequest $request): RedirectResponse
 {
     $request->authenticate();
-    session()->regenerate();
-    // Limpiar redirección previa
-   session()->forget('url.intended');
+    $request->session()->regenerate();
 
     $user = Auth::user();
     $rol = $user->rol?->nombre;
 
+    // 🔹 Redirección según el rol del usuario
     switch ($rol) {
         case 'administrador':
             return redirect()->route('admin.panel');
@@ -39,25 +38,34 @@ class AuthenticatedSessionController extends Controller
         case 'recepcionista':
             return redirect()->route('receptor.panel');
 
-        // Para los roles que aún no tienen panel, redirigir al dashboard
-        case 'dataEntry':
         case 'gestorInventario':
+            return redirect()->route('gestor.panel');
+
+        case 'dataEntry':
+            return redirect()->route('dataentry.panel');
+
         case 'consultor':
+            return redirect()->route('consultor.panel');
+
         default:
-            return redirect()->route('dashboard');
+            // Si no tiene rol válido, lo mandamos al login con error
+            Auth::logout();
+            return redirect()->route('login')->withErrors([
+                'email' => 'Tu rol no tiene acceso asignado al sistema.',
+            ]);
     }
 }
 
     /**
      * Cierra la sesión de usuario.
      */
-    public function destroy(Request $request): RedirectResponse
-    {
-        Auth::guard('web')->logout();
+public function destroy(Request $request): RedirectResponse
+{
+    Auth::guard('web')->logout();
 
-        session()->invalidate();
-        session()->regenerateToken();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
 
-        return redirect('/');
-    }
+    return redirect()->route('login');
+}
 }

@@ -1,47 +1,64 @@
 <x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    <div class="min-h-screen flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 
+                bg-gradient-to-br from-gray-50 via-indigo-50 to-blue-100">
 
-    <form method="POST" action="{{ route('login') }}">
-        @csrf
+        <!-- Encabezado institucional -->
+        <div class="text-center mb-8">
+            <!-- Logo institucional -->
+            <div class="flex justify-center mb-4">
+                <div class="p-2 bg-white/70 border border-indigo-100 rounded-full shadow-sm">
+                    <img src="{{ asset('images/logopoderjudicial.png') }}" 
+                         alt="Logo Poder Judicial"
+                         class="h-24 w-auto mx-auto drop-shadow-md">
+                </div>
+            </div>
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            <!-- Nombre del sistema -->
+            <h1 class="text-2xl font-bold text-gray-900">Sistema de Gestión Patrimonial</h1>
+         
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+        <!-- Card del formulario -->
+        <div class="w-full max-w-md bg-white border border-gray-200 rounded-2xl shadow-lg p-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-1">Iniciar Sesión</h2>
+            <p class="text-sm text-gray-500 mb-6">Ingrese sus credenciales para acceder al sistema</p>
 
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
+            <!-- Mensajes de sesión -->
+            <x-auth-session-status class="mb-4" :status="session('status')" />
 
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
+            <form method="POST" action="{{ route('login') }}">
+                @csrf
 
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
-            </label>
-        </div>
+                <!-- Correo -->
+                <div class="mb-4">
+                    <x-input-label for="email" value="Correo Electrónico" />
+                    <x-text-input id="email" type="email" name="email"
+                        class="mt-1 w-full border-gray-300 rounded-lg focus:border-indigo-500 focus:ring-indigo-500"
+                        placeholder="usuario@judicial.gov"
+                        :value="old('email')" required autofocus autocomplete="username" />
+                    <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                </div>
 
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
+                <!-- Contraseña -->
+                <div class="mb-6">
+                    <x-input-label for="password" value="Contraseña" />
+                    <x-text-input id="password" type="password" name="password"
+                        class="mt-1 w-full border-gray-300 rounded-lg focus:border-indigo-500 focus:ring-indigo-500"
+                        required autocomplete="current-password" />
+                    <x-input-error :messages="$errors->get('password')" class="mt-2" />
+                </div>
 
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
-        </div>
-    </form>
+                <!-- Botón -->
+                <div>
+                    <button type="submit"
+                        class="w-full py-2.5 bg-indigo-900 text-white font-semibold rounded-lg hover:bg-indigo-800 transition-colors">
+                        Ingresar
+                    </button>
+                </div>
+            </form>
+
+        
+        <!-- Footer institucional -->
+        <p class="mt-6 text-gray-500 text-xs">© {{ date('Y') }} Poder Judicial - Sistema Patrimonial</p>
+    </div>
 </x-guest-layout>
