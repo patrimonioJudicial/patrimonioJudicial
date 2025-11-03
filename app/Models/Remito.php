@@ -6,7 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class Remito extends Model {
     protected $table = 'remitos';
-    protected $fillable = ['numero_remito', 'fecha_recepcion', 'foto_remito', 'tipo_compra', 'proveedor_id', 'user_id', 'orden_provision_id'];
+    protected $fillable = [
+    'numero_remito',
+    'numero_expediente',
+    'orden_provision',
+    'fecha_recepcion',
+    'foto_remito',
+    'tipo_compra',
+    'proveedor_id',
+    'user_id',
+];
     protected $dates = ['fecha_recepcion'];
     
     public function proveedor() {
