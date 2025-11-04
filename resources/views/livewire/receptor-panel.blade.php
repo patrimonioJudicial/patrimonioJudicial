@@ -68,6 +68,7 @@
         <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Monto Total</th>
         <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Proveedor</th>
         <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Fecha Recepción</th>
+        <th class="px-4 py-2 text-center text-sm font-semibold text-gray-700">Foto Remito</th>
     </tr>
 </thead>
 
@@ -132,6 +133,21 @@
                     ? \Carbon\Carbon::parse($bien->remito->fecha_recepcion)->format('d/m/Y')
                     : '-' }}
             </td>
+            <!-- Foto del Remito -->
+<td class="px-4 py-2 text-sm text-gray-800 text-center">
+    @if ($bien->remito && $bien->remito->foto_remito)
+        <a href="{{ asset('storage/' . $bien->remito->foto_remito) }}" target="_blank"
+           class="inline-block">
+            <img src="{{ asset('storage/' . $bien->remito->foto_remito) }}" 
+                 alt="Foto del Remito" 
+                 class="w-14 h-14 object-cover rounded-md border border-gray-300 shadow-sm hover:scale-105 transition-transform duration-200 ease-out">
+        </a>
+    @else
+        <span class="text-gray-400 italic">Sin foto</span>
+    @endif
+</td>
+
+
         </tr>
     @endforeach
 </tbody>
@@ -339,14 +355,21 @@
                     </select>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Foto del Remito</label>
-                    <input 
-                        type="file" 
-                        wire:model="formularios.{{ $index }}.foto_remito"
-                        accept="image/*"
-                        class="w-full px-3 py-2 border-gray-200 bg-white rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                </div>
+                <div class="col-span-1">
+    <label class="block text-sm font-medium text-gray-700 mb-1">Foto del Remito</label>
+    <input 
+        type="file" 
+        wire:model="foto_remito"
+        accept="image/*"
+        class="w-full px-3 py-2 border-gray-200 bg-white rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+    
+    @if ($foto_remito)
+        <div class="mt-2">
+            <img src="{{ $foto_remito->temporaryUrl() }}" class="w-32 h-32 object-cover rounded-lg border">
+        </div>
+    @endif
+</div>
+
             </div>
 
             <div class="grid grid-cols-2 gap-6">

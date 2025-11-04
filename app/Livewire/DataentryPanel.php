@@ -6,16 +6,17 @@ use App\Models\Bien;
 use App\Models\Documentacion;
 use App\Models\Proveedor;
 use App\Models\OrdenProvision;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\BienesDocumentacionExport;
 
 class DataentryPanel extends Component
 {
-    // Búsqueda
     public $busqueda = '';
     public $bienSeleccionado = null;
 
-    // Campos de documentación
     public $numero_acta = '';
     public $fecha_acta = '';
     public $numero_resolucion = '';
@@ -29,30 +30,30 @@ class DataentryPanel extends Component
     public $orden_provision_id = '';
     public $estado = 'pendiente';
     public $observaciones = '';
+    public $bienesCompletos = [];
+    public $modalDetalles = false;
+    public $bienDetalle = null;
 
-    // Modales
+    // 🔹 Unificamos el nombre correcto
+    public $showExportModal = false;
+    public $fechaInicio;
+    public $fechaFin;
+
     public $modalSinAsignar = false;
-    public $modalExportar = false;
 
-    // Listeners para refrescar datos
     protected $listeners = ['refrescarPendientes' => '$refresh'];
 
     public function mount()
     {
-        // Establecer valores por defecto
         $this->fecha_acta = date('Y-m-d');
         $this->fecha_factura = date('Y-m-d');
         $this->ejercicio = date('Y');
     }
 
-    /**
-     * Buscar bien por número de inventario
-     */
+    /** Buscar bien */
     public function buscar()
     {
-        $this->validate([
-            'busqueda' => 'required|string',
-        ], [
+        $this->validate(['busqueda' => 'required|string'], [
             'busqueda.required' => 'Debe ingresar un número de inventario',
         ]);
 
@@ -68,21 +69,24 @@ class DataentryPanel extends Component
         }
     }
 
-    /**
-     * Cargar documentación existente del bien
-     */
+    public function verDetalles($bienId)
+    {
+        $this->bienDetalle = Bien::with(['remito', 'proveedor', 'documentacion'])->find($bienId);
+        $this->modalDetalles = true;
+    }
+
+    /** Cargar documentación */
     public function cargarDocumentacion($bienId)
     {
         $bien = Bien::with('documentacion')->find($bienId);
-        
+
         if ($bien && $bien->documentacion) {
             $doc = $bien->documentacion;
             $this->numero_acta = $doc->numero_acta ?? '';
-            $this->fecha_acta = $doc->fecha_acta ? \Carbon\Carbon::parse($doc->fecha_acta)->format('Y-m-d') : date('Y-m-d');
+            $this->fecha_acta = $doc->fecha_acta ? Carbon::parse($doc->fecha_acta)->format('Y-m-d') : date('Y-m-d');
             $this->numero_resolucion = $doc->numero_resolucion ?? '';
             $this->numero_factura = $doc->numero_factura ?? '';
-            $this->fecha_acta = optional($doc->fecha_acta)->format('Y-m-d') ?? date('Y-m-d');
-
+            $this->fecha_factura = $doc->fecha_factura ? Carbon::parse($doc->fecha_factura)->format('Y-m-d') : date('Y-m-d');
             $this->monto = $doc->monto ?? '';
             $this->proveedor_id = $doc->proveedor_id ?? '';
             $this->partida_presupuestaria = $doc->partida_presupuestaria ?? '';
@@ -92,40 +96,20 @@ class DataentryPanel extends Component
             $this->estado = $doc->estado ?? 'pendiente';
             $this->observaciones = $doc->observaciones ?? '';
         } else {
-            // Limpiar campos si no hay documentación
             $this->limpiarCampos();
         }
     }
 
-    /**
-     * Guardar documentación del bien
-     */
+    /** Guardar documentación */
     public function guardarDocumentacion()
     {
-        $this->validate([
-            'numero_acta' => 'nullable|string|max:255',
-            'fecha_acta' => 'nullable|date',
-            'numero_resolucion' => 'nullable|string|max:255',
-            'numero_factura' => 'nullable|string|max:255',
-            'fecha_factura' => 'nullable|date',
-            'monto' => 'nullable|numeric|min:0',
-            'proveedor_id' => 'nullable|exists:proveedores,id',
-            'partida_presupuestaria' => 'nullable|string|max:255',
-            'orden_pago' => 'nullable|string|max:255',
-            'ejercicio' => 'nullable|string|max:4',
-            'orden_provision_id' => 'nullable|exists:ordenes_provision,id',
-            'estado' => 'required|in:pendiente,completo,revisado',
-            'observaciones' => 'nullable|string',
-        ]);
-
         $bien = Bien::find($this->bienSeleccionado);
 
         if (!$bien) {
-            session()->flash('error', '❌ Bien no encontrado');
+            session()->flash('error', '❌ Bien no encontrado.');
             return;
         }
 
-        // Crear o actualizar documentación
         Documentacion::updateOrCreate(
             ['bien_id' => $bien->id],
             [
@@ -146,19 +130,8 @@ class DataentryPanel extends Component
         );
 
         session()->flash('message', '✅ Documentación guardada correctamente');
-        
-        // Limpiar selección
-        $this->bienSeleccionado = null;
-        $this->limpiarCampos();
-        $this->busqueda = '';
-        
-        // Refrescar lista de pendientes
-        $this->dispatch('refrescarPendientes');
     }
 
-    /**
-     * Limpiar campos del formulario
-     */
     public function limpiarCampos()
     {
         $this->numero_acta = '';
@@ -176,84 +149,87 @@ class DataentryPanel extends Component
         $this->observaciones = '';
     }
 
-    /**
-     * Mostrar/ocultar modales
-     */
+    /** Mostrar / cerrar modales */
     public function mostrarModal($tipo)
     {
         if ($tipo === 'sin-asignar') {
+            $this->obtenerBienesCompletos();
             $this->modalSinAsignar = true;
-        } elseif ($tipo === 'exportar') {
-            $this->modalExportar = true;
+        }
+
+        if ($tipo === 'exportar') {
+            $this->showExportModal = true; // ✅ corregido
         }
     }
 
     public function cerrarModal($tipo)
     {
-        if ($tipo === 'sin-asignar') {
-            $this->modalSinAsignar = false;
-        } elseif ($tipo === 'exportar') {
-            $this->modalExportar = false;
-        }
+        if ($tipo === 'sin-asignar') $this->modalSinAsignar = false;
+        if ($tipo === 'exportar') $this->showExportModal = false; // ✅ corregido
+        if ($tipo === 'detalles') $this->modalDetalles = false;
     }
 
-    /**
-     * Obtener bienes pendientes de documentación
-     */
+    /** Bienes pendientes */
     public function getPendientesProperty()
     {
         return Bien::whereDoesntHave('documentacion')
-            ->orWhereHas('documentacion', function($query) {
-                $query->where('estado', '!=', 'completo');
+            ->orWhereHas('documentacion', function ($q) {
+                $q->where('estado', '!=', 'completo');
             })
             ->with(['cuenta', 'remito'])
-            ->orderBy('created_at', 'desc')
-            ->limit(20)
+            ->latest()
+            ->take(20)
             ->get();
     }
 
-    /**
-     * Obtener bienes sin asignar (para el modal)
-     */
     public function getBienesSinAsignarProperty()
     {
-        return Bien::where('estado', 'stock')
-            ->with(['cuenta', 'remito'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        return Bien::whereHas('documentacion', function ($q) {
+            $q->where('estado', 'completo');
+        })
+        ->with(['cuenta', 'remito'])
+        ->latest()
+        ->get();
     }
 
-    /**
-     * Seleccionar bien desde la lista de pendientes
-     */
-    public function seleccionarBien($bienId)
+    public function obtenerBienesCompletos()
     {
-        $this->bienSeleccionado = $bienId;
-        $this->cargarDocumentacion($bienId);
+        $this->bienesCompletos = Bien::whereHas('documentacion', function ($query) {
+            $query->where('estado', 'completo');
+        })
+        ->with(['documentacion'])
+        ->get();
     }
 
-    /**
-     * Exportar a Excel
-     */
-    public function exportarExcel()
+    /** Exportar */
+    public function exportarExcelPorFechas()
     {
-        // Aquí implementarías la lógica de exportación
-        // Por ahora, mostramos un mensaje
-        session()->flash('message', '📊 Exportación en proceso...');
-        $this->modalExportar = false;
-        
-        // Podrías usar algo como:
-        // return Excel::download(new BienesExport, 'bienes.xlsx');
+        $this->validate([
+            'fechaInicio' => 'required|date',
+            'fechaFin' => 'required|date|after_or_equal:fechaInicio',
+        ]);
+
+        $this->showExportModal = false;
+
+        $this->dispatchBrowserEvent('descargar-excel', [
+            'inicio' => $this->fechaInicio,
+            'fin' => $this->fechaFin,
+        ]);
+
+        session()->flash('message', "📦 Se generará el Excel desde {$this->fechaInicio} hasta {$this->fechaFin}");
     }
 
     public function render()
     {
-        return view('livewire.dataentry-panel', [
-            'proveedores' => Proveedor::where('estado', 1)->orderBy('razon_social')->get(),
-           'ordenesProvision' => OrdenProvision::orderBy('numero_orden')->get(),
+        $this->obtenerBienesCompletos();
 
+        return view('livewire.dataentry-panel', [
+            'bienesCompletos' => $this->bienesCompletos,
+            'proveedores' => Proveedor::where('estado', 1)->orderBy('razon_social')->get(),
+            'ordenesProvision' => OrdenProvision::orderBy('id')->get(),
         ])->layout('components.admin-layout', [
-            'title' => 'Panel del Cargador',
+            'title' => 'Panel de Cargador',
         ]);
     }
 }
+

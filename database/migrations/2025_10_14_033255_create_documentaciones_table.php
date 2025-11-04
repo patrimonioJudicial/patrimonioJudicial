@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('numero_factura', 50)->nullable();
             $table->date('fecha_factura')->nullable();
             $table->decimal('monto', 15, 2)->nullable();
-            $table->unsignedBigInteger('proveedor_id')->nullable();
             $table->string('partida_presupuestaria', 100)->nullable();
             $table->string('orden_pago', 50)->nullable();
             $table->year('ejercicio')->nullable();
@@ -36,12 +35,6 @@ return new class extends Migration
                 ->references('id')
                 ->on('bienes')
                 ->onDelete('cascade')
-                ->onUpdate('cascade');
-                
-            $table->foreign('proveedor_id')
-                ->references('id')
-                ->on('proveedores')
-                ->nullOnDelete()
                 ->onUpdate('cascade');
                 
             $table->foreign('orden_provision_id')

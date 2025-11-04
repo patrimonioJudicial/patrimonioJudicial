@@ -80,8 +80,22 @@ class ReceptorPanel extends Component
 
     public function registrarBien()
 {
+    // Validación de datos principales
+    $this->validate([
+        'numero_remito' => 'required|string|max:255',
+        'numero_expediente' => 'nullable|string|max:255',
+        'orden_provision' => 'nullable|string|max:255',
+        'foto_remito' => 'nullable|image|max:2048', // ✅ validamos imagen
+    ]);
+
     // Buscar si el remito ya existe
     $remito = Remito::where('numero_remito', $this->numero_remito)->first();
+
+    // 📸 Guardar la imagen si se cargó una
+    $rutaFoto = null;
+    if ($this->foto_remito) {
+        $rutaFoto = $this->foto_remito->store('remitos', 'public');
+    }
 
     if ($remito) {
         // 🔹 Si existe, actualiza los datos
@@ -92,6 +106,7 @@ class ReceptorPanel extends Component
             'tipo_compra'       => $this->formularios[0]['compra_licitacion'] ? 'licitacion' : 'directa',
             'proveedor_id'      => $this->formularios[0]['proveedor_id'],
             'user_id'           => Auth::id(),
+            'foto_remito'       => $rutaFoto ?? $remito->foto_remito, // ✅ actualiza si hay nueva foto
         ]);
     } else {
         // 🔹 Si no existe, lo crea
@@ -103,6 +118,7 @@ class ReceptorPanel extends Component
             'tipo_compra'       => $this->formularios[0]['compra_licitacion'] ? 'licitacion' : 'directa',
             'proveedor_id'      => $this->formularios[0]['proveedor_id'],
             'user_id'           => Auth::id(),
+            'foto_remito'       => $rutaFoto, // ✅ guarda foto al crear
         ]);
     }
 
@@ -126,12 +142,14 @@ class ReceptorPanel extends Component
                 'estado'           => 'stock',
                 'proveedor_id'     => $form['proveedor_id'],
                 'remito_id'        => $remito->id,
+                'foto_remito' => $rutaFoto ?? null,
             ]);
         }
     }
 
     session()->flash('message', 'Bienes registrados correctamente');
     $this->formularios = [$this->formularioVacio()];
+    $this->foto_remito = null; // ✅ limpiamos después de guardar
 }
 
 

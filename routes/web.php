@@ -8,6 +8,8 @@ use App\Livewire\GestorInventario;
 use App\Livewire\DataentryPanel;
 use App\Livewire\ConsultorPanel;
 use App\Http\Controllers\ProfileController;
+use App\Exports\BienesDocumentacionExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 /*
 |--------------------------------------------------------------------------
@@ -104,3 +106,9 @@ Route::middleware(['auth'])->group(function () {
         return view('admin.panel');
     })->name('admin.panel');
 });
+
+Route::get('/exportar-excel/{inicio}/{fin}', function ($inicio, $fin) {
+    $nombreArchivo = "bienes_documentacion_{$inicio}_a_{$fin}.xlsx";
+    return Excel::download(new BienesDocumentacionExport($inicio, $fin), $nombreArchivo);
+})->name('exportar.excel');
+
