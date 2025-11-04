@@ -19,11 +19,8 @@ class Documentacion extends Model
         'numero_factura',
         'fecha_factura',
         'monto',
-        'proveedor_id',
         'partida_presupuestaria',
         'orden_pago',
-        'ejercicio',
-        'orden_provision_id',
         'estado',
         'observaciones',
     ];
@@ -32,15 +29,5 @@ class Documentacion extends Model
     public function bien()
     {
         return $this->belongsTo(Bien::class);
-    }
-
-    public function proveedor()
-    {
-        return $this->belongsTo(Proveedor::class);
-    }
-
-    public function ordenProvision()
-    {
-        return $this->belongsTo(OrdenProvision::class);
     }
 }

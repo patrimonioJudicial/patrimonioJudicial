@@ -25,7 +25,7 @@ class Remito extends Model {
         return $this->belongsTo(User::class, 'user_id');
     }
     public function ordenProvision() {
-        return $this->belongsTo(OrdenProvision::class);
+        return null;
     }
     public function bienes() {
         return $this->hasMany(Bien::class);
