@@ -203,21 +203,29 @@ class DataentryPanel extends Component
 
     /** Exportar */
     public function exportarExcelPorFechas()
-    {
-        $this->validate([
-            'fechaInicio' => 'required|date',
-            'fechaFin' => 'required|date|after_or_equal:fechaInicio',
-        ]);
+{
+    $this->validate([
+        'fechaInicio' => 'required|date',
+        'fechaFin' => 'required|date|after_or_equal:fechaInicio',
+    ]);
 
-        $this->showExportModal = false;
+    $this->showExportModal = false;
 
-        $this->dispatchBrowserEvent('descargar-excel', [
-            'inicio' => $this->fechaInicio,
-            'fin' => $this->fechaFin,
-        ]);
+    $this->dispatch('descargar-excel', [
+        'inicio' => $this->fechaInicio,
+        'fin' => $this->fechaFin,
+    ]);
 
-        session()->flash('message', "📦 Se generará el Excel desde {$this->fechaInicio} hasta {$this->fechaFin}");
-    }
+    session()->flash('message', "📦 Se generará el Excel desde {$this->fechaInicio} hasta {$this->fechaFin}");
+}
+
+
+    public function seleccionarBien($bienId)
+{
+    $this->bienSeleccionado = $bienId;
+    $this->cargarDocumentacion($bienId);
+}
+
 
     public function render()
     {

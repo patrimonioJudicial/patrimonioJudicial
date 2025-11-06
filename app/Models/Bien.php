@@ -64,15 +64,6 @@ class Bien extends Model
         return $this->belongsTo(Cuenta::class);
     }
 
-    public function remito()
-    {
-        return $this->belongsTo(Remito::class);
-    }
-
-    public function dependencia()
-    {
-        return $this->belongsTo(Dependencia::class);
-    }
 
     public function proveedor()
     {
@@ -84,10 +75,6 @@ class Bien extends Model
         return $this->hasMany(Asignacion::class);
     }
 
-    public function documentacion()
-    {
-        return $this->hasOne(Documentacion::class);
-    }
 
     // ===== SCOPES =====
 
@@ -125,4 +112,21 @@ class Bien extends Model
     {
         return $query->where('es_lote', false);
     }
+
+    public function remito()
+{
+    return $this->belongsTo(Remito::class, 'remito_id');
+}
+
+public function documentacion()
+{
+    return $this->hasOne(Documentacion::class, 'bien_id');
+}
+
+public function dependencia()
+{
+    return $this->belongsTo(Dependencia::class, 'dependencia_id');
+}
+
+
 }

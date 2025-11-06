@@ -27,7 +27,7 @@ class Documentacion extends Model
 
     // Relaciones
     public function bien()
-    {
-        return $this->belongsTo(Bien::class);
-    }
+{
+    return $this->belongsTo(Bien::class, 'bien_id');
+}
 }

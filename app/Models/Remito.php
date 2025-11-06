@@ -27,7 +27,9 @@ class Remito extends Model {
     public function ordenProvision() {
         return null;
     }
-    public function bienes() {
-        return $this->hasMany(Bien::class);
-    }
+    public function bienes()
+{
+    return $this->hasMany(Bien::class, 'remito_id');
+}
+    
 }
