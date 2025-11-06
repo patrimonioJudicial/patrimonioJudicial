@@ -15,9 +15,11 @@ class Asignacion extends Model {
     public function dependencia() {
         return $this->belongsTo(Dependencia::class);
     }
-    public function usuario() {
-        return $this->belongsTo(User::class, 'user_id');
-    }
+    public function user()
+{
+    return $this->belongsTo(User::class, 'user_id');
+}
+
     public function recibioPor() {
         return $this->belongsTo(User::class, 'recibido_por');
     }

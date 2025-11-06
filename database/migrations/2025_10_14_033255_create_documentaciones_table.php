@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('orden_pago', 50)->nullable();
             $table->year('ejercicio')->nullable();
             $table->unsignedBigInteger('orden_provision_id')->nullable();
-            $table->enum('estado', ['pendiente', 'completa', 'observada'])->default('pendiente');
+            $table->enum('estado', ['pendiente', 'completo', 'revisado'])->default('pendiente');
             $table->text('observaciones')->nullable();
             $table->timestamps();
             

@@ -91,13 +91,17 @@
                                     {{ \Carbon\Carbon::parse($asignacion->fecha_asignacion)->format('d/m/Y') }}
                                 </td>
                                 <td class="px-4 py-2">
-                                    <button class="flex items-center gap-1 px-2 py-1 text-xs bg-indigo-50 text-indigo-600 border border-indigo-200 rounded hover:bg-indigo-100">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                                  d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
-                                        </svg>
-                                    </button>
-                                </td>
+    <button 
+        wire:click="generarQR({{ $asignacion->bien->id }})"
+        class="flex items-center gap-1 px-2 py-1 text-xs bg-indigo-50 text-indigo-600 border border-indigo-200 rounded hover:bg-indigo-100"
+        title="Generar Código QR">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+        </svg>
+    </button>
+</td>
+
                             </tr>
                         @empty
                             <tr>
@@ -135,25 +139,30 @@
                             <label class="flex items-start gap-3 cursor-pointer">
                                 <input 
                                     type="checkbox" 
-                                    wire:model="bienesSeleccionados" 
-                                    value="{{ $bien->id }}"
-                                    class="mt-1 w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
-                                
+    value="{{ $bien->id }}"
+    wire:click="toggleBien({{ $bien->id }})"
+    @checked(in_array($bien->id, $bienesSeleccionados))
+    class="mt-1 w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
                                 <div class="flex-1">
                                     <div class="flex items-center justify-between mb-1">
-                                        <span class="font-semibold text-gray-900">{{ $bien->numero_inventario }}</span>
-                                        <button 
-                                            wire:click="verFotoBien({{ $bien->id }})"
-                                            type="button"
-                                            class="flex items-center gap-1 px-2 py-1 text-xs bg-blue-50 text-blue-600 border border-blue-200 rounded hover:bg-blue-100"
-                                            title="Ver foto del remito">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                            </svg>
-                                            Foto
-                                        </button>
-                                    </div>
+    <div class="flex items-center gap-3">
+        <span class="font-semibold text-gray-900">{{ $bien->numero_inventario }}</span>
+
+        @if($bien->remito && $bien->remito->foto_remito)
+            <img 
+                src="{{ asset('storage/' . $bien->remito->foto_remito) }}" 
+                alt="Foto del remito"
+                wire:click="verFotoBien({{ $bien->id }})"
+                class="w-12 h-12 object-cover rounded border border-gray-200 shadow-sm hover:scale-105 transition-transform cursor-pointer"
+                title="Clic para ampliar">
+        @else
+            <div class="w-12 h-12 flex items-center justify-center border border-dashed border-gray-300 text-gray-400 text-[10px] rounded">
+                Sin foto
+            </div>
+        @endif
+    </div>
+</div>
+
                                     <p class="text-sm text-gray-700 mb-2">{{ $bien->descripcion }}</p>
                                     <div class="flex flex-wrap gap-2 text-xs">
                                         <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded">
@@ -210,15 +219,32 @@
                     
                     <!-- Bienes seleccionados -->
                     <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                        <h3 class="text-sm font-semibold text-gray-700 mb-2">Bienes seleccionados:</h3>
-                        @if(count($bienesSeleccionados) === 0)
-                            <p class="text-sm text-gray-500 italic">Ningún bien seleccionado</p>
-                        @else
-                            <p class="text-sm text-gray-700">
-                                <span class="font-bold text-indigo-600">{{ count($bienesSeleccionados) }}</span> bien(es) listo(s) para asignar
-                            </p>
-                        @endif
-                    </div>
+    <h3 class="text-sm font-semibold text-gray-700 mb-2">Bienes seleccionados:</h3>
+
+    @if(count($bienesSeleccionados) === 0)
+        <p class="text-sm text-gray-500 italic">Ningún bien seleccionado</p>
+    @else
+        <ul class="space-y-1 text-sm text-gray-700">
+            @foreach($bienesStock->whereIn('id', $bienesSeleccionados) as $bien)
+                <li class="flex items-center justify-between bg-white border border-gray-100 rounded-md px-3 py-1">
+                    <span class="font-medium">{{ $bien->numero_inventario }} - {{ $bien->descripcion }}</span>
+                    <button 
+                        type="button"
+                        wire:click="toggleBien({{ $bien->id }})"
+                        class="text-red-500 hover:text-red-700 text-xs"
+                        title="Quitar bien">
+                        ✕
+                    </button>
+                </li>
+            @endforeach
+        </ul>
+
+        <p class="text-xs text-gray-500 mt-2">
+            Total: <span class="font-semibold text-indigo-600">{{ count($bienesSeleccionados) }}</span> bien(es)
+        </p>
+    @endif
+</div>
+
 
                     <!-- Dependencia Destino -->
                     <div>
@@ -280,6 +306,8 @@
                         </button>
                     </div>
                 </form>
+                
+
             </div>
         </div>
 

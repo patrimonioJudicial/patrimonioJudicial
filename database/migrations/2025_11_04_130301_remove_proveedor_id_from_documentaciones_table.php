@@ -9,15 +9,22 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+    public function up(): void
 {
     Schema::table('documentaciones', function (Blueprint $table) {
-        // Eliminar la clave foránea
-        $table->dropForeign(['proveedor_id']);
-        // Eliminar la columna
-        $table->dropColumn('proveedor_id');
+        // Solo eliminar si existe
+        if (Schema::hasColumn('documentaciones', 'proveedor_id')) {
+            try {
+                $table->dropForeign(['proveedor_id']);
+            } catch (\Exception $e) {
+                // ignora si ya no existe
+            }
+
+            $table->dropColumn('proveedor_id');
+        }
     });
 }
+
 
 public function down()
 {

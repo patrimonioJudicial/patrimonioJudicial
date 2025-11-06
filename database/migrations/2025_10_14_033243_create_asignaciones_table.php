@@ -10,39 +10,15 @@ return new class extends Migration
     {
         Schema::create('asignaciones', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('bien_id');
-            $table->unsignedBigInteger('dependencia_id');
+            $table->foreignId('bien_id')->constrained('bienes')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('dependencia_id')->constrained('dependencias')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate();
+            $table->foreignId('recibido_por')->nullable()->constrained('users')->nullOnDelete()->cascadeOnUpdate();
             $table->date('fecha_asignacion');
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('recibido_por')->nullable();
             $table->text('observacion')->nullable();
             $table->timestamps();
-            
-            $table->index(['bien_id', 'fecha_asignacion']);
-        });
 
-        Schema::table('asignaciones', function (Blueprint $table) {
-            $table->foreign('bien_id')
-                ->references('id')
-                ->on('bienes')
-                ->onDelete('cascade')
-                ->onUpdate('cascade');
-                
-            $table->foreign('dependencia_id')
-                ->references('id')
-                ->on('dependencias')
-                ->onUpdate('cascade');
-                
-            $table->foreign('user_id')
-                ->references('id')
-                ->on('users')
-                ->onUpdate('cascade');
-                
-            $table->foreign('recibido_por')
-                ->references('id')
-                ->on('users')
-                ->nullOnDelete()
-                ->onUpdate('cascade');
+            $table->index(['bien_id', 'fecha_asignacion']);
         });
     }
 
