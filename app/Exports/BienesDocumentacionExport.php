@@ -23,13 +23,14 @@ class BienesDocumentacionExport implements FromView
     public function view(): View
     {
         $documentaciones = Documentacion::with(['bien.remito', 'bien.dependencia'])
-            ->whereBetween('fecha_acta', [$this->fechaInicio, $this->fechaFin])
+            ->when($this->fechaInicio && $this->fechaFin, function ($query) {
+                $query->whereBetween('fecha_acta', [$this->fechaInicio, $this->fechaFin]);
+            })
             ->orderBy('fecha_acta', 'asc')
             ->get();
 
         return view('exports.bienes-documentacion', [
-            'documentaciones' => $documentaciones
+            'documentaciones' => $documentaciones,
         ]);
     }
 }
-

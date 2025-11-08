@@ -8,6 +8,7 @@ use App\Livewire\GestorInventario;
 use App\Livewire\DataentryPanel;
 use App\Livewire\ConsultorPanel;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DependenciaController;
 use App\Exports\BienesDocumentacionExport;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -15,10 +16,6 @@ use Maatwebsite\Excel\Facades\Excel;
 |--------------------------------------------------------------------------
 | Redirección inicial inteligente
 |--------------------------------------------------------------------------
-|
-| Si el usuario está autenticado, lo lleva directo a su panel según el rol.
-| Si no lo está, muestra la página de login.
-|
 */
 Route::get('/', function () {
     if (Auth::check()) {
@@ -36,7 +33,6 @@ Route::get('/', function () {
 
     return redirect()->route('login');
 });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -78,7 +74,6 @@ Route::middleware(['auth', 'rol:consultor'])
         Route::get('/', ConsultorPanel::class)->name('panel');
     });
 
-
 /*
 |--------------------------------------------------------------------------
 | Perfil del usuario autenticado
@@ -89,26 +84,29 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Dependencias (importación y listado)
+|--------------------------------------------------------------------------
+*/
 Route::get('/dependencias', [DependenciaController::class, 'index'])->name('dependencias.index');
 Route::get('/dependencias/importar', [DependenciaController::class, 'mostrarImportador'])->name('dependencias.importar.form');
 Route::post('/dependencias/importar', [DependenciaController::class, 'procesarImportacion'])->name('dependencias.importar.procesar');
 
-
 /*
 |--------------------------------------------------------------------------
-| Autenticación (login, registro, etc.)
+| Exportación de Excel (Documentación de bienes)
 |--------------------------------------------------------------------------
 */
-require __DIR__.'/auth.php';
-
-Route::middleware(['auth'])->group(function () {
-    Route::get('/admin', function () {
-        return view('admin.panel');
-    })->name('admin.panel');
-});
-
 Route::get('/exportar-excel/{inicio}/{fin}', function ($inicio, $fin) {
     $nombreArchivo = "bienes_documentacion_{$inicio}_a_{$fin}.xlsx";
     return Excel::download(new BienesDocumentacionExport($inicio, $fin), $nombreArchivo);
 })->name('exportar.excel');
 
+/*
+|--------------------------------------------------------------------------
+| Autenticación
+|--------------------------------------------------------------------------
+*/
+require __DIR__.'/auth.php';

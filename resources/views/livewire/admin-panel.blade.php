@@ -1,21 +1,21 @@
 <div class="space-y-8">
-    <!-- HEADER MEJORADO -->
+    <!-- 🔹 HEADER -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">Panel de Administrador</h1>
                 <p class="mt-1 text-sm text-gray-500">Gestión de usuarios, bienes y dependencias</p>
             </div>
-    
         </div>
     </div>
 
-    <!-- TABS MEJORADOS CON ICONOS -->
+    <!-- 🔹 TABS CON ICONOS -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="flex overflow-x-auto">
-            <button wire:click="$set('tab', 'usuarios')"
+            <!-- 🧩 USUARIOS -->
+            <button wire:click="$set('activeTab', 'usuarios')"
                 class="flex-1 flex items-center justify-center space-x-2 px-6 py-4 text-sm font-medium transition-all duration-200 
-                    {{ $tab === 'usuarios' 
+                    {{ $activeTab === 'usuarios' 
                         ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-600' 
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -24,9 +24,10 @@
                 <span>Usuarios</span>
             </button>
 
-            <button wire:click="$set('tab', 'proveedores')"
+            <!-- 🧩 PROVEEDORES -->
+            <button wire:click="$set('activeTab', 'proveedores')"
                 class="flex-1 flex items-center justify-center space-x-2 px-6 py-4 text-sm font-medium transition-all duration-200
-                    {{ $tab === 'proveedores' 
+                    {{ $activeTab === 'proveedores' 
                         ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-600' 
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -35,9 +36,10 @@
                 <span>Proveedores</span>
             </button>
 
-            <button wire:click="$set('tab', 'bienes')"
+            <!-- 🧩 BIENES -->
+            <button wire:click="$set('activeTab', 'bienes')"
                 class="flex-1 flex items-center justify-center space-x-2 px-6 py-4 text-sm font-medium transition-all duration-200
-                    {{ $tab === 'bienes' 
+                    {{ $activeTab === 'bienes' 
                         ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-600' 
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -46,9 +48,10 @@
                 <span>Bienes</span>
             </button>
 
-            <button wire:click="$set('tab', 'dependencias')"
+            <!-- 🧩 DEPENDENCIAS -->
+            <button wire:click="$set('activeTab', 'dependencias')"
                 class="flex-1 flex items-center justify-center space-x-2 px-6 py-4 text-sm font-medium transition-all duration-200
-                    {{ $tab === 'dependencias' 
+                    {{ $activeTab === 'dependencias' 
                         ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-600' 
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -59,9 +62,9 @@
         </div>
     </div>
 
-    <!-- CONTENIDO CON ANIMACIÓN MEJORADA -->
+    <!-- 🔹 CONTENIDO DE CADA TAB -->
     <div class="transition-all duration-300 ease-in-out">
-        @if ($tab === 'usuarios')
+        @if ($activeTab === 'usuarios')
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div class="mb-6">
                     <h2 class="text-xl font-semibold text-gray-900">Usuarios del Sistema</h2>
@@ -69,7 +72,7 @@
                 </div>
                 @livewire('admin.usuarios')
             </div>
-        @elseif ($tab === 'proveedores')
+        @elseif ($activeTab === 'proveedores')
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div class="mb-6">
                     <h2 class="text-xl font-semibold text-gray-900">Proveedores</h2>
@@ -77,7 +80,7 @@
                 </div>
                 @livewire('admin.proveedores')
             </div>
-        @elseif ($tab === 'bienes')
+        @elseif ($activeTab === 'bienes')
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div class="mb-6">
                     <h2 class="text-xl font-semibold text-gray-900">Bienes Patrimoniales</h2>
@@ -85,7 +88,7 @@
                 </div>
                 @livewire('admin.bienes')
             </div>
-        @elseif ($tab === 'dependencias')
+        @elseif ($activeTab === 'dependencias')
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div class="mb-6">
                     <h2 class="text-xl font-semibold text-gray-900">Dependencias</h2>

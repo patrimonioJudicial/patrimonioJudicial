@@ -17,6 +17,7 @@ class DataentryPanel extends Component
     public $busqueda = '';
     public $bienSeleccionado = null;
 
+    // Campos de documentación
     public $numero_acta = '';
     public $fecha_acta = '';
     public $numero_resolucion = '';
@@ -30,16 +31,17 @@ class DataentryPanel extends Component
     public $orden_provision_id = '';
     public $estado = 'pendiente';
     public $observaciones = '';
+
+    // Listas y modales
     public $bienesCompletos = [];
     public $modalDetalles = false;
     public $bienDetalle = null;
+    public $modalSinAsignar = false;
 
-    // 🔹 Unificamos el nombre correcto
+    // Fechas para exportar
     public $showExportModal = false;
     public $fechaInicio;
     public $fechaFin;
-
-    public $modalSinAsignar = false;
 
     protected $listeners = ['refrescarPendientes' => '$refresh'];
 
@@ -69,6 +71,7 @@ class DataentryPanel extends Component
         }
     }
 
+    /** Ver detalles */
     public function verDetalles($bienId)
     {
         $this->bienDetalle = Bien::with(['remito', 'proveedor', 'documentacion'])->find($bienId);
@@ -158,14 +161,14 @@ class DataentryPanel extends Component
         }
 
         if ($tipo === 'exportar') {
-            $this->showExportModal = true; // ✅ corregido
+            $this->showExportModal = true;
         }
     }
 
     public function cerrarModal($tipo)
     {
         if ($tipo === 'sin-asignar') $this->modalSinAsignar = false;
-        if ($tipo === 'exportar') $this->showExportModal = false; // ✅ corregido
+        if ($tipo === 'exportar') $this->showExportModal = false;
         if ($tipo === 'detalles') $this->modalDetalles = false;
     }
 
@@ -201,31 +204,27 @@ class DataentryPanel extends Component
         ->get();
     }
 
-    /** Exportar */
+    /** Exportar a Excel */
     public function exportarExcelPorFechas()
-{
-    $this->validate([
-        'fechaInicio' => 'required|date',
-        'fechaFin' => 'required|date|after_or_equal:fechaInicio',
-    ]);
+    {
+        $this->validate([
+            'fechaInicio' => 'required|date',
+            'fechaFin' => 'required|date|after_or_equal:fechaInicio',
+        ]);
 
-    $this->showExportModal = false;
+        $this->showExportModal = false;
 
-    $this->dispatch('descargar-excel', [
-        'inicio' => $this->fechaInicio,
-        'fin' => $this->fechaFin,
-    ]);
-
-    session()->flash('message', "📦 Se generará el Excel desde {$this->fechaInicio} hasta {$this->fechaFin}");
-}
-
+        return Excel::download(
+            new BienesDocumentacionExport($this->fechaInicio, $this->fechaFin),
+            'bienes_documentacion_' . now()->format('Ymd_His') . '.xlsx'
+        );
+    }
 
     public function seleccionarBien($bienId)
-{
-    $this->bienSeleccionado = $bienId;
-    $this->cargarDocumentacion($bienId);
-}
-
+    {
+        $this->bienSeleccionado = $bienId;
+        $this->cargarDocumentacion($bienId);
+    }
 
     public function render()
     {
@@ -240,4 +239,3 @@ class DataentryPanel extends Component
         ]);
     }
 }
-
