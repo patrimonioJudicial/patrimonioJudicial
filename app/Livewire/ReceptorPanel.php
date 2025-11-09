@@ -20,7 +20,7 @@ class ReceptorPanel extends Component
     public $numero_expediente = '';
     public $orden_provision = '';
     public $fecha_recepcion = '';
-    public $foto_remito = null;
+    public $fotos = [];
     public $proveedor_id = '';
     public $tipo_compra = 'directa'; // o licitacion
     public $mostrarRegistros = false;
@@ -28,9 +28,10 @@ class ReceptorPanel extends Component
 
 
     public function mount()
-    {
-        $this->formularios[] = $this->formularioVacio();
-    }
+{
+    $this->formularios[] = $this->formularioVacio();
+    $this->fotos = []; // ✅ Inicializar array de fotos
+}
 
     // 🔹 Método para volver al formulario
     public function volverAlFormulario()
@@ -85,17 +86,18 @@ class ReceptorPanel extends Component
         'numero_remito' => 'required|string|max:255',
         'numero_expediente' => 'nullable|string|max:255',
         'orden_provision' => 'nullable|string|max:255',
-        'foto_remito' => 'nullable|image|max:2048', // ✅ validamos imagen
+        'fotos.*' => 'nullable|image|max:2048', // ✅ Validación para array de fotos
+        'formularios.*.proveedor_id' => 'required|exists:proveedores,id',
+        'formularios.*.cuenta_id' => 'required|exists:cuentas,id',
+        'formularios.*.numero_inventario' => 'required|numeric|min:1',
+        'formularios.*.descripcion' => 'required|string|max:255',
+        'formularios.*.cantidad' => 'required|integer|min:1',
+        'formularios.*.precio_unitario' => 'required|numeric|min:0',
+        'formularios.*.fecha_recepcion' => 'required|date',
     ]);
 
     // Buscar si el remito ya existe
     $remito = Remito::where('numero_remito', $this->numero_remito)->first();
-
-    // 📸 Guardar la imagen si se cargó una
-    $rutaFoto = null;
-    if ($this->foto_remito) {
-        $rutaFoto = $this->foto_remito->store('remitos', 'public');
-    }
 
     if ($remito) {
         // 🔹 Si existe, actualiza los datos
@@ -106,7 +108,6 @@ class ReceptorPanel extends Component
             'tipo_compra'       => $this->formularios[0]['compra_licitacion'] ? 'licitacion' : 'directa',
             'proveedor_id'      => $this->formularios[0]['proveedor_id'],
             'user_id'           => Auth::id(),
-            'foto_remito'       => $rutaFoto ?? $remito->foto_remito, // ✅ actualiza si hay nueva foto
         ]);
     } else {
         // 🔹 Si no existe, lo crea
@@ -118,17 +119,21 @@ class ReceptorPanel extends Component
             'tipo_compra'       => $this->formularios[0]['compra_licitacion'] ? 'licitacion' : 'directa',
             'proveedor_id'      => $this->formularios[0]['proveedor_id'],
             'user_id'           => Auth::id(),
-            'foto_remito'       => $rutaFoto, // ✅ guarda foto al crear
         ]);
     }
 
     // 🔹 Crear los bienes asociados
-    foreach ($this->formularios as $form) {
-        [$prefijo, $numeroBase] = explode('-', $form['numero_inventario']);
-        $numeroBase = intval($numeroBase);
+    foreach ($this->formularios as $index => $form) {
+        $numeroBase = intval($form['numero_inventario']);
+        
+        // 📸 Guardar la foto individual si existe
+        $rutaFoto = null;
+        if (isset($this->fotos[$index]) && $this->fotos[$index]) {
+            $rutaFoto = $this->fotos[$index]->store('bienes', 'public');
+        }
 
         for ($i = 0; $i < $form['cantidad']; $i++) {
-            $numeroInventario = $prefijo . '-' . str_pad($numeroBase + $i, 3, '0', STR_PAD_LEFT);
+            $numeroInventario = $numeroBase + $i;
 
             Bien::create([
                 'cuenta_id'        => $form['cuenta_id'],
@@ -142,22 +147,22 @@ class ReceptorPanel extends Component
                 'estado'           => 'stock',
                 'proveedor_id'     => $form['proveedor_id'],
                 'remito_id'        => $remito->id,
-                'foto_remito' => $rutaFoto ?? null,
+                'foto_remito'      => $rutaFoto, // ✅ Foto individual por bien
             ]);
         }
     }
 
     session()->flash('message', 'Bienes registrados correctamente');
     $this->formularios = [$this->formularioVacio()];
-    $this->foto_remito = null; // ✅ limpiamos después de guardar
+    $this->fotos = []; // ✅ Limpiar array de fotos
 }
 
 
-
     public function cancelar()
-    {
-        $this->formularios = [$this->formularioVacio()];
-    }
+{
+    $this->formularios = [$this->formularioVacio()];
+    $this->fotos = []; // ✅ Limpiar fotos
+}
 
     public function render()
 {

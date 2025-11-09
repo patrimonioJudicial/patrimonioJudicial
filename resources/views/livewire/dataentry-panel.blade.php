@@ -80,25 +80,86 @@
     </div>
 
     <!-- Pendientes -->
-    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-        <h3 class="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            Pendientes de Documentación
-        </h3>
-        <p class="text-sm text-gray-500 mb-4">Bienes que requieren completar documentación</p>
+<div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+    <h3 class="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+        <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Pendientes de Documentación
+    </h3>
+    <p class="text-sm text-gray-500 mb-4">Bienes que requieren completar documentación</p>
 
-        <div class="space-y-2 max-h-96 overflow-y-auto">
-            @forelse ($this->pendientes as $b)
-                <div wire:click="seleccionarBien({{ $b->id }})"
-                    class="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors @if($bienSeleccionado == $b->id) bg-indigo-50 border-indigo-300 @endif">
+    <div class="space-y-2 max-h-96 overflow-y-auto">
+        @forelse ($this->pendientes as $key => $grupo)
+            @if($grupo['cantidad'] > 1)
+                {{-- Grupo con múltiples bienes --}}
+                <div class="border rounded-lg overflow-hidden @if($grupoSeleccionado === $key) ring-2 ring-indigo-500 @endif">
+                    {{-- Encabezado del grupo - CLICKEABLE --}}
+                    <div wire:click="seleccionarGrupo('{{ $key }}')"
+                         class="p-3 bg-gradient-to-r from-indigo-50 to-blue-50 border-b cursor-pointer hover:from-indigo-100 hover:to-blue-100 transition-colors @if($grupoSeleccionado === $key) from-indigo-100 to-blue-100 @endif"
+                         x-data="{ open: false }">
+                        <div class="flex justify-between items-center">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                                    </svg>
+                                    <p class="font-semibold text-gray-900">Grupo: {{ $grupo['cantidad'] }} bienes</p>
+                                </div>
+                                <div class="flex gap-2 mt-2 flex-wrap">
+                                    <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                                        📋 Remito: {{ $grupo['numero_remito'] }}
+                                    </span>
+                                    <span class="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded">
+                                        📁 Expediente: {{ $grupo['numero_expediente'] }}
+                                    </span>
+                                    <span class="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded">
+                                        🧾 O.P.: {{ $grupo['orden_provision'] }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                @if($grupoSeleccionado === $key)
+                                    <span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
+                                        Seleccionado
+                                    </span>
+                                @endif
+                                <svg class="w-5 h-5 text-gray-500 transform transition-transform"
+                                     :class="{ 'rotate-90': open }"
+                                     @click.stop="open = !open"
+                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        {{-- Items del grupo (expandibles) --}}
+                        <div x-show="open" 
+                             x-transition
+                             @click.stop
+                             class="mt-3 space-y-2">
+                            @foreach($grupo['items'] as $b)
+                                <div class="p-2 bg-white border rounded">
+                                    <p class="font-medium text-sm text-gray-900">{{ $b->numero_inventario }}</p>
+                                    <p class="text-xs text-gray-600">{{ $b->descripcion }}</p>
+                                    <span class="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded">
+                                        {{ $b->cuenta->codigo ?? 'N/A' }}
+                                    </span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @else
+                {{-- Bien individual - NO CLICKEABLE --}}
+                @php $b = $grupo['items']->first(); @endphp
+                <div class="p-3 border rounded-lg bg-gray-50 opacity-60">
                     <div class="flex justify-between items-start">
                         <div class="flex-1">
                             <p class="font-semibold text-gray-900">{{ $b->numero_inventario }}</p>
                             <p class="text-sm text-gray-600">{{ $b->descripcion }}</p>
-                            <div class="flex gap-2 mt-1">
+                            <div class="flex gap-2 mt-1 flex-wrap">
                                 <span class="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded">
                                     {{ $b->cuenta->codigo ?? 'N/A' }}
                                 </span>
@@ -108,223 +169,189 @@
                                 </span>
                                 @endif
                             </div>
+                            <p class="text-xs text-amber-600 mt-1">⚠️ Bien individual - No se puede documentar en grupo</p>
                         </div>
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
                     </div>
                 </div>
-            @empty
-                <div class="text-center py-12 text-gray-500">
-                    <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    <p>No hay bienes pendientes de documentación.</p>
-                </div>
-            @endforelse
-        </div>
-    </div>
-
-    <!-- Documentación asociada -->
-    @if ($bienSeleccionado)
-        @php $bien = \App\Models\Bien::with('remito')->find($bienSeleccionado); @endphp
-        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-            <h3 class="font-semibold text-gray-800 flex items-center gap-2 mb-4">
-                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            @endif
+        @empty
+            <div class="text-center py-12 text-gray-500">
+                <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
-                Documentación Asociada
-            </h3>
-
-            <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-lg mb-6 border border-indigo-100">
-    <p class="font-semibold text-gray-900 text-lg">{{ $bien->numero_inventario }}</p>
-    <p class="text-sm text-gray-700 mt-1">{{ $bien->descripcion }}</p>
-
-    <div class="flex gap-3 mt-2 text-xs text-gray-600">
-    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded">
-        📋 Remito: {{ $bien->remito->numero_remito ?? 'N/A' }}
-    </span>
-    <span class="px-2 py-1 bg-indigo-100 text-indigo-800 rounded">
-        📁 Expediente: {{ $bien->remito->numero_expediente ?? 'N/A' }}
-    </span>
-    <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded">
-        🧾 Orden de Provisión: {{ $bien->remito->orden_provision ?? 'N/A' }}
-    </span>
+                <p>No hay bienes pendientes de documentación.</p>
+            </div>
+        @endforelse
+    </div>
 </div>
 
 
+    <!-- Documentación asociada para GRUPO -->
+@if ($grupoSeleccionado)
+    @php 
+        $grupo = $this->pendientes->get($grupoSeleccionado);
+    @endphp
+    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+        <h3 class="font-semibold text-gray-800 flex items-center gap-2 mb-4">
+            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Documentación para {{ $grupo['cantidad'] }} Bienes
+        </h3>
 
-
-            <form wire:submit.prevent="guardarDocumentacion">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Número de Acta -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Número de Acta
-                        </label>
-                        <input type="text" 
-                            wire:model="numero_acta" 
-                            placeholder="ACTA-2024-0000"
-                            class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-
-                    <!-- Fecha de Acta -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Fecha de Acta
-                        </label>
-                        <input type="date" 
-                            wire:model="fecha_acta"
-                            class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-
-                    <!-- Número de Resolución -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Número de Resolución
-                        </label>
-                        <input type="text" 
-                            wire:model="numero_resolucion" 
-                            placeholder="RES-2024-0000"
-                            class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-
-                    <!-- Número de Factura -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Número de Factura
-                        </label>
-                        <input type="text" 
-                            wire:model="numero_factura" 
-                            placeholder="FAC-A-0000000"
-                            class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-
-                    <!-- Fecha de Factura -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Fecha de Factura
-                        </label>
-                        <input type="date" 
-                            wire:model="fecha_factura"
-                            class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-
-                    <!-- Monto -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Monto
-                        </label>
-                        <input type="number" 
-                            wire:model="monto" 
-                            step="0.01"
-                            placeholder="0.00"
-                            class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-         
-
-                    <!-- Partida Presupuestaria -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Partida Presupuestaria
-                        </label>
-                        <input type="text" 
-                            wire:model="partida_presupuestaria" 
-                            placeholder="Ej: 2.9.3"
-                            class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-
-                    <!-- Orden de Pago -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Orden de Pago
-                        </label>
-                        <input type="text" 
-                            wire:model="orden_pago" 
-                            placeholder="PO-2024-0000"
-                            class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-
-                    <!-- Estado -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Estado
-                        </label>
-                        <select wire:model="estado"
-                            class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                            <option value="pendiente">Pendiente</option>
-                            <option value="completo">Completo</option>
-                            <option value="revisado">Revisado</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Observaciones -->
-                <div class="mt-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Observaciones
-                    </label>
-                    <textarea 
-                        wire:model="observaciones"
-                        rows="3"
-                        placeholder="Observaciones adicionales..."
-                        class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
-                </div>
-
-                <div class="flex justify-end mt-6 gap-2">
-                    <button type="button" wire:click="$set('bienSeleccionado', null)" 
-                        class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                        Cancelar
-                    </button>
-                    <button type="submit"
-                        class="px-4 py-2 bg-indigo-900 text-white rounded-lg hover:bg-indigo-800 transition-colors flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        Guardar Documentación
-                    </button>
-                </div>
-            </form>
+        <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-lg mb-6 border border-indigo-100">
+            <p class="font-semibold text-gray-900 text-lg mb-2">Grupo Seleccionado</p>
+            <div class="flex gap-3 text-sm text-gray-700">
+                <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded">
+                    📋 Remito: {{ $grupo['numero_remito'] }}
+                </span>
+                <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded">
+                    📁 Expediente: {{ $grupo['numero_expediente'] }}
+                </span>
+                <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded">
+                    🧾 O.P.: {{ $grupo['orden_provision'] }}
+                </span>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">
+                La documentación se aplicará a los {{ $grupo['cantidad'] }} bienes de este grupo
+            </p>
         </div>
-    @endif
 
-    <!-- Modal Bienes Sin Asignar -->
-    @if($modalSinAsignar)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" wire:click="cerrarModal('sin-asignar')">
-            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 p-6 max-h-[80vh] overflow-y-auto" wire:click.stop>
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">Bienes Sin Asignar</h3>
-                    <button wire:click="cerrarModal('sin-asignar')" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
+        <form wire:submit.prevent="guardarDocumentacionGrupo">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Número de Acta -->
+<div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">
+        Número de Acta
+    </label>
+    <input type="text" 
+        wire:model="numero_acta" 
+        placeholder="Ej: ACTA-2024-0000 o 5849/25"
+        class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+</div>
+
+                <!-- Fecha de Acta -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Fecha de Acta
+                    </label>
+                    <input type="date" 
+                        wire:model="fecha_acta"
+                        class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
 
-                <div class="space-y-2">
-                    @forelse($this->bienesSinAsignar as $bien)
-                        <div class="p-3 border rounded-lg hover:bg-gray-50">
-                            <p class="font-semibold">{{ $bien->numero_inventario }}</p>
-                            <p class="text-sm text-gray-600">{{ $bien->descripcion }}</p>
-                            <span class="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded">Sin Asignar</span>
-                        </div>
-                    @empty
-                        <p class="text-center text-gray-500 py-8">No hay bienes sin asignar</p>
-                    @endforelse
+                
+<!-- Número de Resolución -->
+<div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">
+        Número de Resolución
+    </label>
+    <input type="text" 
+        wire:model="numero_resolucion" 
+        placeholder="Ej: RES-2024-0000 o 4892-42"
+        class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+</div>
+
+                <!-- Número de Factura -->
+<div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">
+        Número de Factura
+    </label>
+    <input type="text" 
+        wire:model="numero_factura" 
+        placeholder="Ej: FAC-A-0000000 o 43295"
+        class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+</div>
+
+                <!-- Fecha de Factura -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Fecha de Factura
+                    </label>
+                    <input type="date" 
+                        wire:model="fecha_factura"
+                        class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
 
-                <div class="mt-4 flex justify-end">
-                    <button wire:click="cerrarModal('sin-asignar')" 
-                        class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
-                        Cerrar
-                    </button>
+                <!-- Monto -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Monto
+                    </label>
+                    <input type="number" 
+                        wire:model="monto" 
+                        step="0.01"
+                        placeholder="0.00"
+                        class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <!-- Partida Presupuestaria -->
+<div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">
+        Partida Presupuestaria
+    </label>
+    <input type="text" 
+        wire:model="partida_presupuestaria" 
+        placeholder="Ej: 2.9.3 o 4892-42"
+        class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+</div>
+
+                <!-- Orden de Pago -->
+<div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">
+        Orden de Pago
+    </label>
+    <input type="text" 
+        wire:model="orden_pago" 
+        placeholder="Ej: PO-2024-0000 o 5849/25"
+        class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+</div>
+
+                <!-- Estado -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Estado
+                    </label>
+                    <select wire:model="estado"
+                        class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="pendiente">Pendiente</option>
+                        <option value="completo">Completo</option>
+                        <option value="revisado">Revisado</option>
+                    </select>
                 </div>
             </div>
-        </div>
-    @endif
+
+           <!-- Observaciones -->
+            <div class="mt-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Observaciones
+                </label>
+                <textarea 
+                    wire:model="observaciones"
+                    rows="3"
+                    placeholder="Observaciones adicionales..."
+                    class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+            </div>
+
+            <div class="flex justify-end mt-6 gap-2">
+                <button type="button" wire:click="$set('grupoSeleccionado', null)" 
+                    class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Cancelar
+                </button>
+                <button type="submit"
+                    class="px-4 py-2 bg-indigo-900 text-white rounded-lg hover:bg-indigo-800 transition-colors flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Guardar para {{ count($bienesDelGrupo) }} Bienes
+                </button>
+            </div>
+        </form>
+    </div>
+@endif
 
    <!-- Modal Exportar a Excel -->
 <div x-data="{ open: @entangle('showExportModal') }" x-show="open"
@@ -366,45 +393,130 @@
 </div>
 
     <!-- Modal Bienes Completados -->
-    @if($modalSinAsignar)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" wire:click="cerrarModal('sin-asignar')">
-            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 p-6 max-h-[80vh] overflow-y-auto" wire:click.stop>
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">Bienes Completados</h3>
-                    <button wire:click="cerrarModal('sin-asignar')" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
+@if($modalSinAsignar)
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" wire:click="cerrarModal('sin-asignar')">
+        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 p-6 max-h-[80vh] overflow-y-auto" wire:click.stop>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Bienes Completados</h3>
+                <button wire:click="cerrarModal('sin-asignar')" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
 
-                <div class="space-y-2">
-                    @foreach($bienesCompletos as $bien)
+            <div class="space-y-3">
+                @forelse($this->bienesSinAsignar as $key => $grupo)
+                    @if($grupo['cantidad'] > 1)
+                        {{-- Grupo con múltiples bienes --}}
+                        <div class="border rounded-lg overflow-hidden">
+                            {{-- Encabezado del grupo --}}
+                            <div class="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-b"
+                                 x-data="{ open: false }">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            <p class="font-semibold text-gray-900">Grupo: {{ $grupo['cantidad'] }} bienes completados</p>
+                                        </div>
+                                        <div class="flex gap-2 flex-wrap">
+                                            <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                                                📋 Remito: {{ $grupo['numero_remito'] }}
+                                            </span>
+                                            <span class="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded">
+                                                📁 Expediente: {{ $grupo['numero_expediente'] }}
+                                            </span>
+                                            <span class="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded">
+                                                🧾 O.P.: {{ $grupo['orden_provision'] }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <button @click="open = !open" 
+                                            class="ml-4 text-gray-500 hover:text-gray-700">
+                                        <svg class="w-5 h-5 transform transition-transform"
+                                             :class="{ 'rotate-90': open }"
+                                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                
+                                {{-- Items del grupo (expandibles) --}}
+                                <div x-show="open" 
+                                     x-transition
+                                     class="mt-3 space-y-2">
+                                    @foreach($grupo['items'] as $bien)
+                                        <div class="p-3 bg-white border rounded-lg flex justify-between items-center hover:bg-gray-50">
+                                            <div>
+                                                <p class="font-semibold text-sm">{{ $bien->numero_inventario }}</p>
+                                                <p class="text-xs text-gray-600">{{ $bien->descripcion }}</p>
+                                                <div class="flex gap-1 mt-1">
+                                                    <span class="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded">
+                                                        {{ $bien->cuenta->codigo ?? 'N/A' }}
+                                                    </span>
+                                                    <span class="text-xs px-2 py-1 bg-green-100 text-green-800 rounded">
+                                                        Completo
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <button wire:click="verDetalles({{ $bien->id }})" 
+                                                class="text-sm px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition">
+                                                Ver Detalles
+                                            </button>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        {{-- Bien individual --}}
+                        @php $bien = $grupo['items']->first(); @endphp
                         <div class="p-3 border rounded-lg hover:bg-gray-50 flex justify-between items-center">
-    <div>
-        <p class="font-semibold">{{ $bien->numero_inventario }}</p>
-        <p class="text-sm text-gray-600">{{ $bien->descripcion }}</p>
-        <span class="text-xs px-2 py-1 bg-green-100 text-green-800 rounded">Completo</span>
-    </div>
-    <button wire:click="verDetalles({{ $bien->id }})" 
-        class="text-sm px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition">
-        Ver Detalles
-    </button>
-</div>
+                            <div>
+                                <p class="font-semibold">{{ $bien->numero_inventario }}</p>
+                                <p class="text-sm text-gray-600">{{ $bien->descripcion }}</p>
+                                <div class="flex gap-1 mt-1">
+                                    <span class="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded">
+                                        {{ $bien->cuenta->codigo ?? 'N/A' }}
+                                    </span>
+                                    <span class="text-xs px-2 py-1 bg-green-100 text-green-800 rounded">
+                                        Completo
+                                    </span>
+                                    @if($bien->remito)
+                                    <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                                        Remito: {{ $bien->remito->numero_remito }}
+                                    </span>
+                                    @endif
+                                </div>
+                            </div>
+                            <button wire:click="verDetalles({{ $bien->id }})" 
+                                class="text-sm px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition">
+                                Ver Detalles
+                            </button>
+                        </div>
+                    @endif
+                @empty
+                    <div class="text-center py-12 text-gray-500">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <p>No hay bienes completados</p>
+                    </div>
+                @endforelse
+            </div>
 
-                    @endforeach
-                </div>
-
-                <div class="mt-4 flex justify-end">
-                    <button wire:click="cerrarModal('sin-asignar')" 
-                        class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
-                        Cerrar
-                    </button>
-                </div>
+            <div class="mt-6 flex justify-end">
+                <button wire:click="cerrarModal('sin-asignar')" 
+                    class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+                    Cerrar
+                </button>
             </div>
         </div>
-    @endif
-</div>
+    </div>
+@endif
 
 <!-- Modal Detalles del Bien -->
 @if($modalDetalles && $bienDetalle)
@@ -428,23 +540,23 @@
             </button>
         </div>
 
-        <!-- 📸 Foto -->
-        <div class="flex justify-center mb-6">
-            @if($bienDetalle->remito && $bienDetalle->remito->foto_remito)
-                <img src="{{ asset('storage/' . $bienDetalle->remito->foto_remito) }}" 
-                     alt="Foto del remito {{ $bienDetalle->remito->numero_remito }}"
-                     class="max-h-64 rounded-lg shadow-md border object-contain hover:scale-105 transition-transform duration-300">
-            @else
-                <div class="flex flex-col items-center text-gray-500">
-                    <svg class="w-10 h-10 mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M3 5h18M3 19h18M5 5v14M19 5v14M9 10l3 3 3-3" />
-                    </svg>
-                    <p>No hay foto cargada para este bien.</p>
-                </div>
-            @endif
+       <!-- 📸 Foto -->
+<div class="flex justify-center mb-6">
+    @if($bienDetalle->remito && $bienDetalle->remito->foto_remito)
+        <img src="{{ asset('storage/' . $bienDetalle->remito->foto_remito) }}" 
+             alt="Foto del remito {{ $bienDetalle->remito->numero_remito }}"
+             class="max-h-64 rounded-lg shadow-md border object-contain hover:scale-105 transition-transform duration-300"
+             onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'text-center text-red-500\'><svg class=\'w-10 h-10 mx-auto mb-2\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z\'/></svg><p class=\'text-sm\'>Error: Imagen no encontrada</p><p class=\'text-xs text-gray-500 mt-1\'>{{ $bienDetalle->remito->foto_remito }}</p></div>';">
+    @else
+        <div class="flex flex-col items-center text-gray-500">
+            <svg class="w-10 h-10 mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 5h18M3 19h18M5 5v14M19 5v14M9 10l3 3 3-3" />
+            </svg>
+            <p>No hay foto cargada para este bien.</p>
         </div>
-
+    @endif
+</div>
         <!-- 🧾 SECCIÓN REMITO (incluye bien y cuenta) -->
         <h4 class="text-lg font-semibold text-indigo-700 border-b border-indigo-200 pb-1 mb-3">
             Remito
