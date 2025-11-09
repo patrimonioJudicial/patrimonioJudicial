@@ -13,7 +13,6 @@ use App\Models\Remito;
 class Bienes extends Component
 {
     use WithPagination;
-
     protected $paginationTheme = 'tailwind';
 
     // ─── Propiedades principales ───────────────────────────────
@@ -27,7 +26,8 @@ class Bienes extends Component
     public $bien_id = null;
     public $modoEdicion = false;
     public $showModal = false;
-
+    public $observaciones = '';
+   
     protected $queryString = ['search', 'mostrarInactivos'];
 
     protected $rules = [
@@ -35,7 +35,7 @@ class Bienes extends Component
         'descripcion' => 'required|string|max:255',
         'cantidad' => 'required|integer|min:1',
         'precio_unitario' => 'required|numeric|min:0',
-        'dependencia_id' => 'nullable|exists:dependencias,id',
+        'dependencia_id' => 'required|exists:dependencias,id',
         'proveedor_id' => 'required|exists:proveedores,id',
         'cuenta_id' => 'required|exists:cuentas,id',
         'remito_id' => 'required|exists:remitos,id',
@@ -48,29 +48,21 @@ class Bienes extends Component
         $this->modoEdicion = false;
         $this->showModal = true;
 
-        /** @var \App\Models\Bien|null $ultimoBien */
         $ultimoBien = Bien::orderByDesc('id')->first();
         $ultimoNumero = $ultimoBien?->numero_inventario;
-
         $this->numero_inventario = $this->generarSiguienteNumero($ultimoNumero);
     }
 
     private function generarSiguienteNumero($ultimoNumero)
     {
-        if (!$ultimoNumero) {
-            return 'INV-001';
-        }
-
+        if (!$ultimoNumero) return 'INV-001';
         if (preg_match('/^([A-Za-z\-]*)(\d+)$/', $ultimoNumero, $m)) {
             $prefijo = $m[1];
             $numero = (int)$m[2] + 1;
             $longitud = strlen($m[2]);
             return $prefijo . str_pad($numero, $longitud, '0', STR_PAD_LEFT);
         }
-
-        return is_numeric($ultimoNumero)
-            ? str_pad($ultimoNumero + 1, 3, '0', STR_PAD_LEFT)
-            : 'INV-001';
+        return 'INV-001';
     }
 
     // ─── EDITAR BIEN ───────────────────────────────────────────
@@ -87,6 +79,7 @@ class Bienes extends Component
         $this->proveedor_id = $bien->proveedor_id;
         $this->cuenta_id = $bien->cuenta_id;
         $this->remito_id = $bien->remito_id;
+
         $this->modoEdicion = true;
         $this->showModal = true;
     }
@@ -104,22 +97,22 @@ class Bienes extends Component
 
         Bien::create([
             'numero_inventario' => $this->numero_inventario,
-            'descripcion' => $this->descripcion,
-            'cantidad' => $this->cantidad,
-            'precio_unitario' => $this->precio_unitario,
-            'monto_total' => $this->cantidad * $this->precio_unitario,
-            'dependencia_id' => $this->dependencia_id,
-            'proveedor_id' => $this->proveedor_id,
-            'cuenta_id' => $this->cuenta_id,
-            'remito_id' => $this->remito_id,
-            'estado' => 'stock',
-            'bien_uso' => 1,
-            'bien_consumo' => 0,
-            'user_id' => auth()->id(),
+            'descripcion'       => $this->descripcion,
+            'cantidad'          => $this->cantidad,
+            'precio_unitario'   => $this->precio_unitario,
+            'monto_total'       => $this->cantidad * $this->precio_unitario,
+            'dependencia_id'    => $this->dependencia_id,
+            'proveedor_id'      => $this->proveedor_id,
+            'cuenta_id'         => $this->cuenta_id,
+            'remito_id'         => $this->remito_id,
+            'estado'            => 'stock',
+            'bien_uso'          => 1,
+            'bien_consumo'      => 0,
+            'user_id'           => auth()->id(),
         ]);
 
         $this->cerrarModal();
-        session()->flash('message', 'Bien agregado correctamente ✅');
+        session()->flash('message', '✅ Bien agregado correctamente');
     }
 
     // ─── ACTUALIZAR BIEN ──────────────────────────────────────
@@ -130,28 +123,33 @@ class Bienes extends Component
             'descripcion' => 'required|string|max:255',
             'cantidad' => 'required|integer|min:1',
             'precio_unitario' => 'required|numeric|min:0',
-            'dependencia_id' => 'nullable|exists:dependencias,id',
+            'dependencia_id' => 'required|exists:dependencias,id',
             'proveedor_id' => 'required|exists:proveedores,id',
             'cuenta_id' => 'required|exists:cuentas,id',
             'remito_id' => 'required|exists:remitos,id',
+            'observaciones' => $this->observaciones,
+
         ]);
 
         $bien = Bien::findOrFail($this->bien_id);
 
         $bien->update([
             'numero_inventario' => $this->numero_inventario,
-            'descripcion' => $this->descripcion,
-            'cantidad' => $this->cantidad,
-            'precio_unitario' => $this->precio_unitario,
-            'monto_total' => $this->cantidad * $this->precio_unitario,
-            'dependencia_id' => $this->dependencia_id,
-            'proveedor_id' => $this->proveedor_id,
-            'cuenta_id' => $this->cuenta_id,
-            'remito_id' => $this->remito_id,
+            'descripcion'       => $this->descripcion,
+            'cantidad'          => $this->cantidad,
+            'precio_unitario'   => $this->precio_unitario,
+            'monto_total'       => $this->cantidad * $this->precio_unitario,
+            'dependencia_id'    => $this->dependencia_id,
+            'proveedor_id'      => $this->proveedor_id,
+            'cuenta_id'         => $this->cuenta_id,
+            'remito_id'         => $this->remito_id,
+            'observaciones' => $this->observaciones,
+
         ]);
+        
 
         $this->cerrarModal();
-        session()->flash('message', 'Bien actualizado correctamente ✏️');
+        session()->flash('message', '✏️ Bien actualizado correctamente');
     }
 
     private function resetForm()
@@ -184,38 +182,11 @@ class Bienes extends Component
         $bienes = $query->orderByDesc('id')->paginate(8);
 
         return view('livewire.admin.bienes', [
-            'bienes' => $bienes,
+            'bienes'       => $bienes,
             'dependencias' => Dependencia::orderBy('nombre')->get(),
-            'proveedores' => Proveedor::orderBy('razon_social')->get(),
-            'cuentas' => Cuenta::orderBy('codigo')->get(),
-            'remitos' => Remito::orderBy('numero_remito')->get(),
+            'proveedores'  => Proveedor::orderBy('razon_social')->get(),
+            'cuentas'      => Cuenta::orderBy('codigo')->get(),
+            'remitos'      => Remito::orderBy('numero_remito')->get(),
         ]);
-    }
-
-    // ─── Acciones ─────────────────────────────────────────────
-    public function darDeBajaBien($id)
-    {
-        if ($bien = Bien::find($id)) {
-            $bien->update(['estado' => 'baja']);
-            session()->flash('message', 'Bien dado de baja 🚫');
-        }
-    }
-
-    public function activarBien($id)
-    {
-        if ($bien = Bien::find($id)) {
-            $bien->update(['estado' => 'stock']);
-            session()->flash('message', 'Bien reactivado ✅');
-        }
-    }
-
-    public function verDetalle($id)
-    {
-        $this->detalleBien = Bien::with(['dependencia', 'proveedor', 'cuenta', 'remito'])->find($id);
-    }
-
-    public function cerrarDetalle()
-    {
-        $this->detalleBien = null;
     }
 }

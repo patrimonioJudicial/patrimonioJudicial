@@ -2,19 +2,13 @@
 
 namespace App\Livewire;
 
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use App\Models\Bien;
 use App\Models\Asignacion;
 use App\Models\Dependencia;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
-use Endroid\QrCode\Builder\Builder;
-use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelHigh;
-use Endroid\QrCode\Writer\PngWriter;
-use Endroid\QrCode\Color\Color;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Facades\Storage;
 
 class GestorInventario extends Component
 {
@@ -44,95 +38,25 @@ class GestorInventario extends Component
     public function toggleBien($bienId)
     {
         if (in_array($bienId, $this->bienesSeleccionados)) {
-            $this->bienesSeleccionados = array_values(array_diff($this->bienesSeleccionados, [$bienId]));
+            $this->bienesSeleccionados = array_diff($this->bienesSeleccionados, [$bienId]);
         } else {
             $this->bienesSeleccionados[] = $bienId;
         }
     }
 
-    // Método para ver la foto de un bien
+    // Ver foto de remito
     public function verFotoBien($bienId)
     {
         $bien = Bien::with('remito')->find($bienId);
-
-        if (!$bien) {
-            session()->flash('error', 'No se encontró el bien seleccionado.');
-            return;
-        }
-
-        $remito = $bien->remito;
-
-        if ($remito && !empty($remito->foto_remito)) {
-            $this->fotoUrl = asset('storage/' . $remito->foto_remito);
+        
+        if ($bien && $bien->remito && $bien->remito->foto_remito) {
             $this->bienSeleccionado = $bien;
+            $this->fotoUrl = asset('storage/' . $bien->remito->foto_remito);
             $this->mostrarModalFoto = true;
         } else {
             session()->flash('error', 'No hay foto disponible para este bien.');
         }
     }
-
-    public function generarQR($bienId)
-{
-    $bien = Bien::with(['remito', 'documentacion', 'dependencia'])->findOrFail($bienId);
-
-    // 📋 Datos del bien
-    $data = "🧾 BIEN PATRIMONIAL\n";
-    $data .= "Inventario: {$bien->numero_inventario}\n";
-    $data .= "Descripción: {$bien->descripcion}\n";
-    $data .= "Tipo: " . ($bien->bien_uso ? 'Bien de Uso' : 'Bien de Consumo') . "\n";
-    $data .= "Monto Total: $" . number_format((float)($bien->monto_total ?? 0), 2) . "\n";
-
-    if ($bien->remito) {
-        $data .= "\n📦 REMITO\n";
-        $data .= "Orden de Provisión: {$bien->remito->orden_provision}\n";
-        $data .= "Expediente: {$bien->remito->numero_expediente}\n";
-        $data .= "Fecha Recepción: {$bien->remito->fecha_recepcion}\n";
-    }
-
-    if ($bien->documentacion) {
-        $data .= "\n📄 DOCUMENTACIÓN\n";
-        $data .= "Acta: {$bien->documentacion->numero_acta}\n";
-        $data .= "Resolución: {$bien->documentacion->numero_resolucion}\n";
-        $data .= "Factura: {$bien->documentacion->numero_factura}\n";
-        $data .= "Monto: $" . number_format((float)($bien->documentacion->monto ?? 0), 2) . "\n";
-    }
-
-    if ($bien->dependencia) {
-        $data .= "\n🏛️ DEPENDENCIA ACTUAL\n";
-        $data .= "{$bien->dependencia->codigo} - {$bien->dependencia->nombre}\n";
-    }
-
-    // 📁 Crear carpeta si no existe
-    if (!Storage::disk('public')->exists('qrs')) {
-        Storage::disk('public')->makeDirectory('qrs');
-    }
-
-    // 📄 Nombre del archivo
-    $fileName = 'qrs/bien_' . $bien->id . '_' . Str::random(6) . '.png';
-    $path = storage_path('app/public/' . $fileName);
-
-    // 🧠 Generar QR usando Endroid
-    $result = Builder::create()
-        ->writer(new PngWriter())
-        ->data($data)
-        ->encoding(new Encoding('UTF-8'))
-        ->errorCorrectionLevel(new ErrorCorrectionLevelHigh())
-        ->size(300)
-        ->margin(5)
-        ->backgroundColor(new Color(255, 255, 255))
-        ->foregroundColor(new Color(0, 0, 0))
-        ->build();
-
-    // 🖼️ Guardar QR como archivo
-    $result->saveToFile($path);
-
-    // 💾 Guardar ruta en la BD
-    $bien->update(['codigo_qr' => $fileName]);
-
-    // 🔄 Refrescar vista y mostrar mensaje
-    $this->dispatch('$refresh');
-    session()->flash('message', '✅ Código QR generado correctamente.');
-}
 
     public function cerrarModalFoto()
     {
@@ -141,7 +65,7 @@ class GestorInventario extends Component
         $this->bienSeleccionado = null;
     }
 
-    // Asignar bienes a dependencia
+    // Asignar bienes + generar QR (sin usar extensiones extra)
     public function asignarBienes()
     {
         $this->validate([
@@ -160,6 +84,7 @@ class GestorInventario extends Component
             $bien = Bien::find($bienId);
             
             if ($bien && $bien->estado === 'stock') {
+                // Crear la asignación
                 Asignacion::create([
                     'bien_id' => $bien->id,
                     'dependencia_id' => $this->dependencia_id,
@@ -168,20 +93,48 @@ class GestorInventario extends Component
                     'observacion' => $this->observacion,
                 ]);
 
+                // Actualizar estado del bien
                 $bien->update([
                     'estado' => 'asignado',
                     'dependencia_id' => $this->dependencia_id,
                 ]);
+
+                // 🔹 Contenido del QR
+                $contenidoQR = "Bien N° {$bien->numero_inventario}\n"
+                    . "Descripción: {$bien->descripcion}\n"
+                    . "Dependencia: {$dependencia->nombre}\n"
+                    . "Asignado el: {$this->fecha_asignacion}";
+
+                $contenidoQR = mb_convert_encoding($contenidoQR, 'UTF-8', 'auto');
+
+                // 🔹 Ruta
+                $nombreArchivo = "qr_bien_{$bien->id}.svg";
+                $rutaQR = "qrcodes/{$nombreArchivo}";
+
+                // 🔹 Generar QR SVG (sin Imagick)
+                Storage::disk('public')->put(
+                    $rutaQR,
+                    QrCode::format('svg')
+                        ->size(200)
+                        ->encoding('UTF-8')
+                        ->errorCorrection('H')
+                        ->generate($contenidoQR)
+                );
+
+                // Guardar la ruta
+                $bien->update(['codigo_qr' => $rutaQR]);
             }
         }
 
-        session()->flash('message', count($this->bienesSeleccionados) . ' bien(es) asignado(s) correctamente a ' . $dependencia->nombre);
-        
+        session()->flash(
+            'message',
+            count($this->bienesSeleccionados) . ' bien(es) asignado(s) correctamente a ' . $dependencia->nombre
+        );
+
         $this->reset(['bienesSeleccionados', 'dependencia_id', 'observacion']);
         $this->fecha_asignacion = date('Y-m-d');
     }
 
-    // Ver asignaciones recientes
     public function verAsignaciones()
     {
         $this->asignaciones = Asignacion::with(['bien.cuenta', 'bien.proveedor', 'dependencia', 'user'])
@@ -218,4 +171,3 @@ class GestorInventario extends Component
         ]);
     }
 }
-

@@ -57,13 +57,12 @@
     <thead class="bg-gray-100">
     <tr>
         <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">#</th>
-        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">N° Remito</th>
-        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">N° Inventario</th>
         <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Expediente</th>
         <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Orden de Provisión</th>
-        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Descripción</th>
+        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">N° Remito</th>
         <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Cuenta</th>
-        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Cantidad</th>
+        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">N° Inventario</th>
+        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Descripción</th>        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Cantidad</th>
         <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Precio Unitario</th>
         <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Monto Total</th>
         <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Proveedor</th>
@@ -77,34 +76,51 @@
         <tr class="border-b">
             <td class="px-4 py-2 text-sm text-gray-800">{{ $index + 1 }}</td>
 
+            <!-- Expediente -->
+            <td class="px-4 py-2 text-sm text-gray-800">
+                {{ $bien->remito->numero_expediente ?? '-' }}
+            </td>
+
+            <!-- Orden de Provisión -->
+            <td class="px-4 py-2 text-sm text-gray-800">
+                {{ $bien->remito->orden_provision ?? '-' }}
+            </td>
+
+
             <!-- N° Remito -->
             <td class="px-4 py-2 text-sm text-gray-800">
                 {{ $bien->remito->numero_remito ?? '-' }}
             </td>
+
+            <!-- Cuenta -->
+<td class="px-4 py-2 text-sm text-gray-800">
+    @if($bien->cuenta)
+        @php
+            $numeroCuenta = $bien->cuenta->numero_cuenta 
+                         ?? $bien->cuenta->numero 
+                         ?? $bien->cuenta->codigo 
+                         ?? $bien->cuenta->cuenta 
+                         ?? '-';
+            
+            // Si contiene guión, extraer solo la parte numérica
+            if($numeroCuenta !== '-' && strpos($numeroCuenta, '-') !== false) {
+                $numeroCuenta = explode('-', $numeroCuenta)[0];
+            }
+        @endphp
+        {{ $numeroCuenta }}
+    @else
+        -
+    @endif
+</td>
 
             <!-- N° Inventario -->
             <td class="px-4 py-2 text-sm text-gray-800">
                 {{ $bien->numero_inventario ?? '-' }}
             </td>
 
-            <!-- Expediente -->
-<td class="px-4 py-2 text-sm text-gray-800">
-    {{ $bien->remito->numero_expediente ?? '-' }}
-</td>
-
-            <!-- Orden de Provisión -->
-<td class="px-4 py-2 text-sm text-gray-800">
-    {{ $bien->remito->orden_provision ?? '-' }}
-</td>
-
             <!-- Descripción -->
             <td class="px-4 py-2 text-sm text-gray-800">
                 {{ $bien->descripcion ?? '-' }}
-            </td>
-
-            <!-- Cuenta -->
-            <td class="px-4 py-2 text-sm text-gray-800">
-                {{ $bien->cuenta->descripcion ?? $bien->cuenta->codigo ?? '-' }}
             </td>
 
             <!-- Cantidad -->
@@ -356,20 +372,20 @@
                 </div>
 
                 <div class="col-span-1">
-    <label class="block text-sm font-medium text-gray-700 mb-1">Foto del Remito</label>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Foto del Bien</label>
     <input 
         type="file" 
-        wire:model="foto_remito"
+        wire:model="fotos.{{ $index }}"
         accept="image/*"
         class="w-full px-3 py-2 border-gray-200 bg-white rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
     
-    @if ($foto_remito)
+    @if (isset($fotos[$index]))
         <div class="mt-2">
-            <img src="{{ $foto_remito->temporaryUrl() }}" class="w-32 h-32 object-cover rounded-lg border">
+            <img src="{{ $fotos[$index]->temporaryUrl() }}" 
+                 class="w-32 h-32 object-cover rounded-lg border">
         </div>
     @endif
 </div>
-
             </div>
 
             <div class="grid grid-cols-2 gap-6">

@@ -17,6 +17,7 @@ class DataentryPanel extends Component
     public $busqueda = '';
     public $bienSeleccionado = null;
 
+    // Campos de documentación
     public $numero_acta = '';
     public $fecha_acta = '';
     public $numero_resolucion = '';
@@ -30,16 +31,19 @@ class DataentryPanel extends Component
     public $orden_provision_id = '';
     public $estado = 'pendiente';
     public $observaciones = '';
+
+    // Listas y modales
     public $bienesCompletos = [];
     public $modalDetalles = false;
     public $bienDetalle = null;
+    public $modalSinAsignar = false;
 
-    // 🔹 Unificamos el nombre correcto
+    // Fechas para exportar
     public $showExportModal = false;
     public $fechaInicio;
     public $fechaFin;
-
-    public $modalSinAsignar = false;
+    public $grupoSeleccionado = null;
+    public $bienesDelGrupo = [];
 
     protected $listeners = ['refrescarPendientes' => '$refresh'];
 
@@ -69,6 +73,9 @@ class DataentryPanel extends Component
         }
     }
 
+    
+
+    /** Ver detalles */
     public function verDetalles($bienId)
     {
         $this->bienDetalle = Bien::with(['remito', 'proveedor', 'documentacion'])->find($bienId);
@@ -158,39 +165,71 @@ class DataentryPanel extends Component
         }
 
         if ($tipo === 'exportar') {
-            $this->showExportModal = true; // ✅ corregido
+            $this->showExportModal = true;
         }
     }
 
     public function cerrarModal($tipo)
     {
         if ($tipo === 'sin-asignar') $this->modalSinAsignar = false;
-        if ($tipo === 'exportar') $this->showExportModal = false; // ✅ corregido
+        if ($tipo === 'exportar') $this->showExportModal = false;
         if ($tipo === 'detalles') $this->modalDetalles = false;
     }
 
     /** Bienes pendientes */
     public function getPendientesProperty()
-    {
-        return Bien::whereDoesntHave('documentacion')
-            ->orWhereHas('documentacion', function ($q) {
-                $q->where('estado', '!=', 'completo');
-            })
-            ->with(['cuenta', 'remito'])
-            ->latest()
-            ->take(20)
-            ->get();
-    }
-
-    public function getBienesSinAsignarProperty()
-    {
-        return Bien::whereHas('documentacion', function ($q) {
-            $q->where('estado', 'completo');
+{
+    $bienes = Bien::whereDoesntHave('documentacion')
+        ->orWhereHas('documentacion', function ($q) {
+            $q->where('estado', '!=', 'completo');
         })
         ->with(['cuenta', 'remito'])
         ->latest()
+        ->take(20)
         ->get();
-    }
+
+    // Agrupar por expediente y orden de provisión
+    return $bienes->groupBy(function($bien) {
+        if ($bien->remito && $bien->remito->numero_expediente && $bien->remito->orden_provision) {
+            return $bien->remito->numero_expediente . '|' . $bien->remito->orden_provision;
+        }
+        return 'individual_' . $bien->id;
+    })->map(function($grupo) {
+        return [
+            'items' => $grupo,
+            'numero_expediente' => $grupo->first()->remito->numero_expediente ?? 'N/A',
+            'orden_provision' => $grupo->first()->remito->orden_provision ?? 'N/A',
+            'numero_remito' => $grupo->first()->remito->numero_remito ?? 'N/A',
+            'cantidad' => $grupo->count(),
+        ];
+    });
+}
+
+    public function getBienesSinAsignarProperty()
+{
+    $bienes = Bien::whereHas('documentacion', function ($q) {
+        $q->where('estado', 'completo');
+    })
+    ->with(['cuenta', 'remito', 'documentacion'])
+    ->latest()
+    ->get();
+
+    // Agrupar por expediente y orden de provisión
+    return $bienes->groupBy(function($bien) {
+        if ($bien->remito && $bien->remito->numero_expediente && $bien->remito->orden_provision) {
+            return $bien->remito->numero_expediente . '|' . $bien->remito->orden_provision;
+        }
+        return 'individual_' . $bien->id;
+    })->map(function($grupo) {
+        return [
+            'items' => $grupo,
+            'numero_expediente' => $grupo->first()->remito->numero_expediente ?? 'N/A',
+            'orden_provision' => $grupo->first()->remito->orden_provision ?? 'N/A',
+            'numero_remito' => $grupo->first()->remito->numero_remito ?? 'N/A',
+            'cantidad' => $grupo->count(),
+        ];
+    });
+}
 
     public function obtenerBienesCompletos()
     {
@@ -201,31 +240,88 @@ class DataentryPanel extends Component
         ->get();
     }
 
-    /** Exportar */
+    /** Exportar a Excel */
     public function exportarExcelPorFechas()
-{
-    $this->validate([
-        'fechaInicio' => 'required|date',
-        'fechaFin' => 'required|date|after_or_equal:fechaInicio',
-    ]);
+    {
+        $this->validate([
+            'fechaInicio' => 'required|date',
+            'fechaFin' => 'required|date|after_or_equal:fechaInicio',
+        ]);
 
-    $this->showExportModal = false;
+        $this->showExportModal = false;
 
-    $this->dispatch('descargar-excel', [
-        'inicio' => $this->fechaInicio,
-        'fin' => $this->fechaFin,
-    ]);
-
-    session()->flash('message', "📦 Se generará el Excel desde {$this->fechaInicio} hasta {$this->fechaFin}");
-}
-
+        return Excel::download(
+            new BienesDocumentacionExport($this->fechaInicio, $this->fechaFin),
+            'bienes_documentacion_' . now()->format('Ymd_His') . '.xlsx'
+        );
+    }
 
     public function seleccionarBien($bienId)
 {
-    $this->bienSeleccionado = $bienId;
-    $this->cargarDocumentacion($bienId);
+    // Deshabilitado - ahora solo se seleccionan grupos
+    return;
 }
 
+// Nuevo método para seleccionar grupo completo
+public function seleccionarGrupo($key)
+{
+    $this->grupoSeleccionado = $key;
+    
+    // Obtener todos los bienes del grupo
+    $grupo = $this->pendientes->get($key);
+    
+    if ($grupo) {
+        $this->bienesDelGrupo = $grupo['items']->pluck('id')->toArray();
+        
+        // Cargar la documentación del primer bien (si existe)
+        // porque todos tendrán la misma
+        $primerBien = $grupo['items']->first();
+        if ($primerBien) {
+            $this->cargarDocumentacion($primerBien->id);
+        }
+    }
+}
+
+// Modificar el método guardarDocumentacion para aplicar a todos los bienes del grupo
+public function guardarDocumentacionGrupo()
+{
+    if (empty($this->bienesDelGrupo)) {
+        session()->flash('error', '❌ No hay bienes seleccionados en el grupo.');
+        return;
+    }
+
+    $documentacionData = [
+        'numero_acta' => $this->numero_acta,
+        'fecha_acta' => $this->fecha_acta,
+        'numero_resolucion' => $this->numero_resolucion,
+        'numero_factura' => $this->numero_factura,
+        'fecha_factura' => $this->fecha_factura,
+        'monto' => $this->monto,
+        'proveedor_id' => $this->proveedor_id,
+        'partida_presupuestaria' => $this->partida_presupuestaria,
+        'orden_pago' => $this->orden_pago,
+        'ejercicio' => $this->ejercicio,
+        'orden_provision_id' => $this->orden_provision_id,
+        'estado' => $this->estado,
+        'observaciones' => $this->observaciones,
+    ];
+
+    // Aplicar la misma documentación a todos los bienes del grupo
+    foreach ($this->bienesDelGrupo as $bienId) {
+        Documentacion::updateOrCreate(
+            ['bien_id' => $bienId],
+            $documentacionData
+        );
+    }
+
+    session()->flash('message', '✅ Documentación guardada para ' . count($this->bienesDelGrupo) . ' bienes');
+    
+    // Limpiar selección
+    $this->grupoSeleccionado = null;
+    $this->bienesDelGrupo = [];
+    $this->limpiarCampos();
+
+}
 
     public function render()
     {
@@ -240,4 +336,3 @@ class DataentryPanel extends Component
         ]);
     }
 }
-

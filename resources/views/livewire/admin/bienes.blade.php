@@ -141,54 +141,102 @@
                     </div>
 
                     <!-- Formulario -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Número de Inventario</label>
-                            <input type="text" wire:model="numero_inventario"
-                                class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200">
-                        </div>
+            
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-                            <input type="text" wire:model="descripcion"
-                                class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200">
-                        </div>
+    <!-- Número de Inventario -->
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Número de Inventario</label>
+        <input type="text" wire:model="numero_inventario"
+            class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+            readonly>
+        @error('numero_inventario') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+    </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
-                            <input type="number" wire:model="cantidad" min="1"
-                                class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200">
-                        </div>
+    <!-- Descripción -->
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+        <input type="text" wire:model="descripcion"
+            class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200">
+        @error('descripcion') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+    </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Precio Unitario</label>
-                            <input type="number" wire:model="precio_unitario" step="0.01" min="0"
-                                class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200">
-                        </div>
+    <!-- Cantidad -->
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
+        <input type="number" wire:model="cantidad" min="1"
+            class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200">
+        @error('cantidad') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+    </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Dependencia</label>
-                            <select wire:model="dependencia_id"
-                                class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200">
-                                <option value="">Seleccione una dependencia</option>
-                                @foreach ($dependencias as $d)
-                                    <option value="{{ $d->id }}">{{ $d->nombre }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+    <!-- Precio Unitario -->
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Precio Unitario</label>
+        <input type="number" wire:model="precio_unitario" step="0.01" min="0"
+            class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200">
+        @error('precio_unitario') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+    </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor</label>
-                            <select wire:model="proveedor_id"
-                                class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200">
-                                <option value="">Seleccione un proveedor</option>
-                                @foreach ($proveedores as $p)
-                                    <option value="{{ $p->id }}">{{ $p->razon_social }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
+    <!-- Dependencia -->
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Dependencia</label>
+        <select wire:model="dependencia_id"
+            class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200">
+            <option value="">Seleccione una dependencia</option>
+            @foreach ($dependencias as $d)
+                <option value="{{ $d->id }}">{{ $d->nombre }}</option>
+            @endforeach
+        </select>
+        @error('dependencia_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+    </div>
 
+    <!-- Proveedor -->
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor</label>
+        <select wire:model="proveedor_id"
+            class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200">
+            <option value="">Seleccione un proveedor</option>
+            @foreach ($proveedores as $p)
+                <option value="{{ $p->id }}">{{ $p->razon_social }}</option>
+            @endforeach
+        </select>
+        @error('proveedor_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+    </div>
+
+    <!-- Cuenta -->
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Cuenta</label>
+        <select wire:model="cuenta_id"
+            class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200">
+            <option value="">Seleccione una cuenta</option>
+            @foreach ($cuentas as $c)
+                <option value="{{ $c->id }}">{{ $c->codigo }} – {{ $c->descripcion }}</option>
+            @endforeach
+        </select>
+        @error('cuenta_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+    </div>
+
+    <!-- Remito -->
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Remito</label>
+        <select wire:model="remito_id"
+            class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200">
+            <option value="">Seleccione un remito</option>
+            @foreach ($remitos as $r)
+                <option value="{{ $r->id }}">{{ $r->numero_remito }}</option>
+            @endforeach
+        </select>
+        @error('remito_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+    </div>
+
+    <!-- Observaciones (opcional) -->
+    <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
+        <textarea wire:model.defer="observaciones"
+            class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+            rows="2" placeholder="Detalles adicionales sobre el bien..."></textarea>
+    </div>
+</div>
                     <!-- Botones Modal -->
                     <div class="flex justify-end space-x-3 mt-6">
                         <button wire:click="cerrarModal"
@@ -206,5 +254,6 @@
                 </div>
             </div>
         </div>
-    @endif
+    </div>
+@endif
 </div>
