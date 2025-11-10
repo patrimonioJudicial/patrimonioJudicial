@@ -1,62 +1,44 @@
-{{-- resources/views/livewire/repartidor-panel.blade.php --}}
-<div>
-    
-    <!-- Page Header -->
-  <h1 class="text-3xl font-bold text-gray-900">Panel del Gestor de Inventario</h1>
-<p class="text-gray-600 mt-1">Asignación y control de bienes patrimoniales</p>
+<div class="min-h-screen bg-gray-50 p-6">
+    <!-- 🔹 Encabezado principal -->
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Sistema de Gestión Patrimonial</h1>
+        <p class="text-gray-600">Poder Judicial</p>
+    </div>
 
+    <!-- 🔹 Encabezado del panel -->
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-900">Panel del Gestor de Inventario</h1>
+        <p class="text-gray-600 mt-1">Asignación y control de bienes patrimoniales</p>
+    </div>
 
-    <!-- Mensajes de éxito/error -->
+    <!-- 🔹 Mensajes de estado -->
     @if (session()->has('message'))
-        <div class="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg flex items-center justify-between">
+        <div class="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg flex justify-between">
             <span>✅ {{ session('message') }}</span>
-            <button onclick="this.parentElement.remove()" class="text-green-800 hover:text-green-900">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                </svg>
-            </button>
+            <button onclick="this.parentElement.remove()" class="text-green-700">✕</button>
         </div>
     @endif
-
     @if (session()->has('error'))
-        <div class="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-center justify-between">
+        <div class="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex justify-between">
             <span>❌ {{ session('error') }}</span>
-            <button onclick="this.parentElement.remove()" class="text-red-800 hover:text-red-900">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                </svg>
-            </button>
+            <button onclick="this.parentElement.remove()" class="text-red-700">✕</button>
         </div>
     @endif
 
-    @if ($errors->any())
-        <div class="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
-            <ul class="list-disc list-inside">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    <!-- Vista de Asignaciones Recientes -->
+    <!-- 🔹 Vista de asignaciones -->
     @if($mostrarAsignaciones)
         <div class="bg-white rounded-lg shadow p-6">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
                     <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
                     </svg>
                     Asignaciones Recientes
                 </h2>
                 <button wire:click="volverAlFormulario" 
                     class="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-800">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M15 19l-7-7 7-7" />
-                    </svg>
-                    <span>Volver</span>
+                    ← Volver
                 </button>
             </div>
 
@@ -64,50 +46,45 @@
                 <table class="min-w-full border border-gray-200 text-sm">
                     <thead class="bg-gray-100">
                         <tr>
-                            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Inventario</th>
-                            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Descripción</th>
-                            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Cuenta</th>
-                            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Dependencia</th>
-                            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Fecha</th>
-                            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">QR</th>
+                            <th class="px-3 py-2 text-left font-semibold text-gray-700">Inventario</th>
+                            <th class="px-3 py-2 text-left font-semibold text-gray-700">Descripción</th>
+                            <th class="px-3 py-2 text-left font-semibold text-gray-700">Dependencia</th>
+                            <th class="px-3 py-2 text-left font-semibold text-gray-700">Fecha</th>
+                            <th class="px-3 py-2 text-left font-semibold text-gray-700">Foto</th>
+                            <th class="px-3 py-2 text-left font-semibold text-gray-700">QR</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($asignaciones as $asignacion)
+                        @forelse ($asignaciones as $asig)
                             <tr class="border-b hover:bg-gray-50">
-                                <td class="px-4 py-2 text-sm text-gray-800">
-                                    {{ $asignacion->bien->numero_inventario }}
+                                <td class="px-3 py-2">{{ $asig->bien->numero_inventario }}</td>
+                                <td class="px-3 py-2">{{ $asig->bien->descripcion }}</td>
+                                <td class="px-3 py-2">{{ $asig->dependencia->nombre }}</td>
+                                <td class="px-3 py-2">{{ \Carbon\Carbon::parse($asig->fecha_asignacion)->format('d/m/Y') }}</td>
+                                <td class="px-3 py-2">
+                                    @if ($asig->bien->foto)
+                                        <img src="{{ asset('storage/' . $asig->bien->foto) }}"
+                                             wire:click="verFotoBien({{ $asig->bien->id }})"
+                                             class="w-12 h-12 rounded object-cover border border-gray-300 shadow-sm hover:scale-105 transition cursor-pointer"
+                                             title="Clic para ampliar">
+                                    @else
+                                        <span class="text-gray-400 italic">Sin foto</span>
+                                    @endif
                                 </td>
-                                <td class="px-4 py-2 text-sm text-gray-800">
-                                    {{ $asignacion->bien->descripcion }}
+                                <td class="px-3 py-2">
+                                    @if ($asig->bien->codigo_qr)
+                                        <img src="{{ asset('storage/' . $asig->bien->codigo_qr) }}"
+                                             alt="QR"
+                                             class="w-12 h-12 object-contain border rounded shadow-sm"
+                                             title="Código QR del Bien">
+                                    @else
+                                        <span class="text-gray-400 italic">Sin QR</span>
+                                    @endif
                                 </td>
-                                <td class="px-4 py-2 text-sm text-gray-800">
-                                    {{ $asignacion->bien->cuenta->codigo }}
-                                </td>
-                                <td class="px-4 py-2 text-sm text-gray-800">
-                                    {{ $asignacion->dependencia->nombre }}
-                                </td>
-                                <td class="px-4 py-2 text-sm text-gray-800">
-                                    {{ \Carbon\Carbon::parse($asignacion->fecha_asignacion)->format('d/m/Y') }}
-                                </td>
-                                <td class="px-4 py-2">
-    <button 
-        wire:click="generarQR({{ $asignacion->bien->id }})"
-        class="flex items-center gap-1 px-2 py-1 text-xs bg-indigo-50 text-indigo-600 border border-indigo-200 rounded hover:bg-indigo-100"
-        title="Generar Código QR">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
-        </svg>
-    </button>
-</td>
-
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-4 py-8 text-center text-gray-500">
-                                    No hay asignaciones registradas
-                                </td>
+                                <td colspan="6" class="text-center py-6 text-gray-500">No hay asignaciones registradas</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -115,246 +92,146 @@
             </div>
         </div>
     @else
-        <!-- Panel Principal - Grid de dos columnas -->
+        <!-- 🔹 Panel principal: bienes y asignar -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            
-            <!-- Panel Izquierdo: Bienes en Stock -->
+
+            <!-- 🔸 Bienes en stock -->
             <div class="bg-white rounded-lg shadow p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                        </svg>
-                        <h2 class="text-xl font-semibold text-gray-900">Bienes en Stock</h2>
-                    </div>
-                    <span class="text-sm text-gray-600">
-                        Seleccione los bienes a asignar
-                    </span>
-                </div>
+                <h2 class="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M20 7l-8-4-8 4v10l8 4 8-4V7z"/>
+                    </svg>
+                    Bienes en Stock
+                </h2>
 
                 <div class="space-y-2 max-h-[600px] overflow-y-auto">
                     @forelse($bienesStock as $bien)
                         <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
                             <label class="flex items-start gap-3 cursor-pointer">
-                                <input 
-                                    type="checkbox" 
-    value="{{ $bien->id }}"
-    wire:click="toggleBien({{ $bien->id }})"
-    @checked(in_array($bien->id, $bienesSeleccionados))
-    class="mt-1 w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
+                                <input type="checkbox"
+                                    wire:click="toggleBien({{ $bien->id }})"
+                                    @checked(in_array($bien->id, $bienesSeleccionados))
+                                    class="mt-1 w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
                                 <div class="flex-1">
-                                    <div class="flex items-center justify-between mb-1">
-    <div class="flex items-center gap-3">
-        <span class="font-semibold text-gray-900">{{ $bien->numero_inventario }}</span>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center gap-3">
+                                            <span class="font-semibold text-gray-900">{{ $bien->numero_inventario }}</span>
 
-        @if($bien->remito && $bien->remito->foto_remito)
-            <img 
-                src="{{ asset('storage/' . $bien->remito->foto_remito) }}" 
-                alt="Foto del remito"
-                wire:click="verFotoBien({{ $bien->id }})"
-                class="w-12 h-12 object-cover rounded border border-gray-200 shadow-sm hover:scale-105 transition-transform cursor-pointer"
-                title="Clic para ampliar">
-        @else
-            <div class="w-12 h-12 flex items-center justify-center border border-dashed border-gray-300 text-gray-400 text-[10px] rounded">
-                Sin foto
-            </div>
-        @endif
-    </div>
-</div>
+                                            @if($bien->foto)
+                                                <img src="{{ asset('storage/' . $bien->foto) }}" 
+                                                     alt="Foto del bien"
+                                                     wire:click="verFotoBien({{ $bien->id }})"
+                                                     class="w-14 h-14 object-cover rounded border border-gray-200 shadow-sm hover:scale-105 transition-transform cursor-pointer"
+                                                     title="Clic para ampliar">
+                                            @else
+                                                <div class="w-14 h-14 flex items-center justify-center border border-dashed border-gray-300 text-gray-400 text-[10px] rounded">
+                                                    Sin foto
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
 
                                     <p class="text-sm text-gray-700 mb-2">{{ $bien->descripcion }}</p>
-                                    <div class="flex flex-wrap gap-2 text-xs">
-                                        <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded">
-                                            O. Provisión: {{ $bien->remito->orden_provision ?? 'N/A' }}
-                                        </span>
-                                        <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded">
-                                            Expediente: {{ $bien->remito->numero_expediente ?? 'N/A' }}
-                                        </span>
-                                        <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded">
-                                            Fecha Recepción: {{ $bien->remito->fecha_recepcion ? \Carbon\Carbon::parse($bien->remito->fecha_recepcion)->format('d/m/Y') : 'N/A' }}
-                                        </span>
-                                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
-                                            {{ $bien->bien_uso ? 'Bien de Uso' : 'Bien de Consumo' }}
-                                        </span>
+                                    <div class="text-xs space-y-1 mt-2">
+                                        <div class="flex flex-wrap gap-2">
+                                            <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded">
+                                                Expediente: {{ $bien->remito->numero_expediente ?? 'N/A' }}
+                                            </span>
+                                            <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded">
+                                                Orden: {{ $bien->remito->orden_provision ?? 'N/A' }}
+                                            </span>
+                                            <span class="px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
+                                                {{ $bien->bien_uso ? 'Bien de Uso' : 'Bien de Consumo' }}
+                                            </span>
+                                        </div>
+
+                                        <!-- 💰 Línea separada con número de cuenta -->
+                                        <div class="flex items-center text-gray-700 mt-1">
+                                            <svg class="w-4 h-4 text-indigo-600 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                      d="M12 8c-1.104 0-2 .672-2 1.5S10.896 11 12 11s2-.672 2-1.5S13.104 8 12 8zM4 7h16M4 12h16M4 17h16"/>
+                                            </svg>
+                                            <span class="text-xs font-medium">Número de cuenta:</span>
+                                            <span class="ml-1 text-xs font-semibold text-gray-900">
+                                                {{ $bien->cuenta->codigo ?? 'N/A' }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </label>
                         </div>
                     @empty
-                        <div class="text-center py-12 text-gray-500">
-                            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                            </svg>
-                            <p class="text-lg font-medium">No hay bienes en stock</p>
-                            <p class="text-sm mt-1">Los bienes aparecerán aquí cuando sean registrados por el receptor</p>
-                        </div>
+                        <p class="text-center text-gray-500 py-6">No hay bienes en stock</p>
                     @endforelse
                 </div>
-
-                @if(count($bienesStock) > 0)
-                    <div class="mt-4 pt-4 border-t border-gray-200">
-                        <p class="text-sm text-gray-600">
-                            <span class="font-semibold">{{ count($bienesSeleccionados) }}</span> 
-                            bien(es) seleccionado(s)
-                        </p>
-                    </div>
-                @endif
             </div>
 
-            <!-- Panel Derecho: Asignar a Dependencia -->
+            <!-- 🔸 Formulario de asignación -->
             <div class="bg-white rounded-lg shadow p-6">
-                <div class="flex items-center gap-2 mb-4">
-                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-                    </svg>
-                    <h2 class="text-xl font-semibold text-gray-900">Asignar a Dependencia</h2>
-                </div>
-
-                <p class="text-sm text-gray-600 mb-6">Complete los datos de asignación</p>
-
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Asignar a Dependencia</h2>
                 <form wire:submit.prevent="asignarBienes" class="space-y-6">
-                    
-                    <!-- Bienes seleccionados -->
-                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-    <h3 class="text-sm font-semibold text-gray-700 mb-2">Bienes seleccionados:</h3>
-
-    @if(count($bienesSeleccionados) === 0)
-        <p class="text-sm text-gray-500 italic">Ningún bien seleccionado</p>
-    @else
-        <ul class="space-y-1 text-sm text-gray-700">
-            @foreach($bienesStock->whereIn('id', $bienesSeleccionados) as $bien)
-                <li class="flex items-center justify-between bg-white border border-gray-100 rounded-md px-3 py-1">
-                    <span class="font-medium">{{ $bien->numero_inventario }} - {{ $bien->descripcion }}</span>
-                    <button 
-                        type="button"
-                        wire:click="toggleBien({{ $bien->id }})"
-                        class="text-red-500 hover:text-red-700 text-xs"
-                        title="Quitar bien">
-                        ✕
-                    </button>
-                </li>
-            @endforeach
-        </ul>
-
-        <p class="text-xs text-gray-500 mt-2">
-            Total: <span class="font-semibold text-indigo-600">{{ count($bienesSeleccionados) }}</span> bien(es)
-        </p>
-    @endif
-</div>
-
-
-                    <!-- Dependencia Destino -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Dependencia Destino <span class="text-red-500">*</span>
-                        </label>
-                        <select 
-                            wire:model="dependencia_id"
-                            class="w-full px-3 py-2 border-gray-200 bg-white rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                            <option value="">Seleccione una dependencia</option>
-                            @foreach($dependencias as $dependencia)
-                                <option value="{{ $dependencia->id }}">
-                                    {{ $dependencia->codigo }} - {{ $dependencia->nombre }}
-                                </option>
+                        <label class="text-sm font-medium text-gray-700">Dependencia</label>
+                        <select wire:model="dependencia_id"
+                            class="w-full mt-1 border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="">Seleccione</option>
+                            @foreach($dependencias as $dep)
+                                <option value="{{ $dep->id }}">{{ $dep->codigo }} - {{ $dep->nombre }}</option>
                             @endforeach
                         </select>
                     </div>
 
-                    <!-- Fecha de Asignación -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Fecha de Asignación <span class="text-red-500">*</span>
-                        </label>
-                        <input 
-                            type="date" 
-                            wire:model="fecha_asignacion"
-                            class="w-full px-3 py-2 border-gray-200 bg-white rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <label class="text-sm font-medium text-gray-700">Fecha de Asignación</label>
+                        <input type="date" wire:model="fecha_asignacion"
+                            class="w-full mt-1 border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
 
-                    <!-- Observación -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Observación (opcional)
-                        </label>
-                        <textarea 
-                            wire:model="observacion"
+                        <label class="text-sm font-medium text-gray-700">Observación</label>
+                        <textarea wire:model="observacion"
                             rows="3"
-                            placeholder="Ej: Asignado para uso en sala de audiencias..."
-                            class="w-full px-3 py-2 border-gray-200 bg-white rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                            class="w-full mt-1 border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="Ej: Asignado al Juzgado N° 2..."></textarea>
                     </div>
 
-                    <!-- Botones -->
-                    <div class="flex justify-end space-x-3 pt-4">
-                        <button 
-                            type="button"
-                            wire:click="cancelar"
-                            class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 font-medium transition-colors">
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" wire:click="cancelar"
+                            class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
                             Cancelar
                         </button>
-                        <button 
-                            type="submit"
-                            class="px-6 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 font-medium transition-colors flex items-center space-x-2"
-                            @if(count($bienesSeleccionados) === 0) disabled @endif>
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                            </svg>
-                            <span>Asignar Bienes</span>
+                        <button type="submit"
+                            class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                            Asignar Bienes
                         </button>
                     </div>
                 </form>
-                
-
             </div>
         </div>
 
-        <!-- Botón Ver Asignaciones -->
         <div class="flex justify-end">
-            <button 
-                wire:click="verAsignaciones"
-                class="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2H9z"/>
-                </svg>
-                <span>Ver Asignaciones Recientes</span>
+            <button wire:click="verAsignaciones"
+                class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                📋 Ver Asignaciones
             </button>
         </div>
     @endif
 
-    <!-- Modal para ver foto -->
+    <!-- 🔹 Modal de foto -->
     @if($mostrarModalFoto)
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" wire:click="cerrarModalFoto">
-            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 p-6" wire:click.stop>
+            <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 p-6" wire:click.stop>
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-semibold text-gray-900">
-                        Foto del Remito - {{ $bienSeleccionado->numero_inventario ?? 'N/A' }}
+                        Foto del Bien - {{ $bienSeleccionado->numero_inventario ?? 'N/A' }}
                     </h3>
-                    <button 
-                        wire:click="cerrarModalFoto"
-                        class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
+                    <button wire:click="cerrarModalFoto" class="text-gray-400 hover:text-gray-600">✕</button>
                 </div>
-                
                 <div class="flex justify-center">
-                    <img src="{{ $fotoUrl }}" alt="Foto del remito" class="max-w-full max-h-[70vh] rounded-lg shadow">
-                </div>
-                
-                <div class="mt-4 flex justify-end">
-                    <button 
-                        wire:click="cerrarModalFoto"
-                        class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
-                        Cerrar
-                    </button>
+                    <img src="{{ $fotoUrl }}" alt="Foto del bien" class="max-w-full max-h-[70vh] rounded-lg shadow">
                 </div>
             </div>
         </div>
     @endif
-
 </div>

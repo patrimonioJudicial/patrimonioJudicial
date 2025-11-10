@@ -11,7 +11,8 @@ class Bien extends Model
     protected $fillable = [
         'lote_padre_id', 'es_lote', 'numero_inventario', 'descripcion', 'cantidad',
         'precio_unitario', 'monto_total', 'bien_uso', 'bien_consumo', 'estado', 'fecha_baja',
-        'causa_baja', 'cuenta_id', 'remito_id', 'dependencia_id', 'proveedor_id', 'codigo_qr'
+        'causa_baja', 'cuenta_id', 'remito_id', 'dependencia_id', 'proveedor_id', 'codigo_qr',
+        'foto', // ✅ ya corregido
     ];
     
     protected $casts = [
@@ -23,25 +24,24 @@ class Bien extends Model
         'monto_total' => 'decimal:2'
     ];
 
-    //  Calcula monto_total automáticamente
-    public function getMotoTotalAttribute()
+    // ✅ Corrige nombre del accesor
+    public function getMontoTotalAttribute()
     {
         return $this->cantidad * $this->precio_unitario;
     }
 
-    //  Al guardar, calcula el monto_total
-    public function setMontototalAttribute($value)
+    public function setMontoTotalAttribute($value)
     {
         $this->attributes['monto_total'] = $this->cantidad * $this->precio_unitario;
     }
 
-    public function setcantidadAttribute($value)
+    public function setCantidadAttribute($value)
     {
         $this->attributes['cantidad'] = $value;
         $this->attributes['monto_total'] = $value * ($this->attributes['precio_unitario'] ?? 0);
     }
 
-    public function setprecio_unitarioAttribute($value)
+    public function setPrecioUnitarioAttribute($value)
     {
         $this->attributes['precio_unitario'] = $value;
         $this->attributes['monto_total'] = ($this->attributes['cantidad'] ?? 0) * $value;
@@ -64,7 +64,6 @@ class Bien extends Model
         return $this->belongsTo(Cuenta::class);
     }
 
-
     public function proveedor()
     {
         return $this->belongsTo(Proveedor::class);
@@ -75,6 +74,20 @@ class Bien extends Model
         return $this->hasMany(Asignacion::class);
     }
 
+    public function remito()
+    {
+        return $this->belongsTo(Remito::class, 'remito_id');
+    }
+
+    public function documentacion()
+    {
+        return $this->hasOne(Documentacion::class, 'bien_id');
+    }
+
+    public function dependencia()
+    {
+        return $this->belongsTo(Dependencia::class, 'dependencia_id');
+    }
 
     // ===== SCOPES =====
 
@@ -112,21 +125,4 @@ class Bien extends Model
     {
         return $query->where('es_lote', false);
     }
-
-    public function remito()
-{
-    return $this->belongsTo(Remito::class, 'remito_id');
-}
-
-public function documentacion()
-{
-    return $this->hasOne(Documentacion::class, 'bien_id');
-}
-
-public function dependencia()
-{
-    return $this->belongsTo(Dependencia::class, 'dependencia_id');
-}
-
-
 }

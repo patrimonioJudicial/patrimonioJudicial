@@ -23,6 +23,16 @@ class ConsultorPanel extends Component
     public $qrActual = '';
 
     protected $paginationTheme = 'tailwind';
+public function mount()
+{
+    // Si el QR contiene ?id=###
+    if (request()->has('id')) {
+        $bienId = request()->get('id');
+        $this->bienSeleccionado = $bienId;
+        $this->vistaActual = 'detalle';
+    }
+}
+
 
     // 🔹 Se ejecuta automáticamente al cambiar un filtro
     public function updatingFiltroEstado()

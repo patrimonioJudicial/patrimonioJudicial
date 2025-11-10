@@ -156,6 +156,20 @@
                                 </button>
                                 @endif
                             </div>
+@if($bien->foto)
+    <div class="flex justify-center my-4">
+        <img src="{{ asset('storage/' . $bien->foto) }}" 
+             alt="Foto del bien"
+             class="w-32 h-32 object-cover rounded border border-gray-200 shadow-sm hover:scale-105 transition-transform cursor-pointer"
+             title="Foto del bien">
+    </div>
+@else
+    <div class="flex justify-center my-4">
+        <div class="w-32 h-32 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs">
+            Sin foto
+        </div>
+    </div>
+@endif
 
                             <p class="text-sm text-gray-600 mb-3 line-clamp-2">{{ $bien->descripcion }}</p>
 
@@ -258,6 +272,16 @@
                 <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-lg mb-6 border border-indigo-100">
                     <h3 class="text-2xl font-bold text-gray-900">{{ $bien->numero_inventario }}</h3>
                     <p class="text-gray-700 mt-2">{{ $bien->descripcion }}</p>
+                    @if($bien->foto)
+    <div class="mt-4 flex justify-center">
+        <img src="{{ asset('storage/' . $bien->foto) }}" 
+             alt="Foto del bien"
+             class="max-w-sm rounded-lg shadow border border-gray-200">
+    </div>
+@else
+    <p class="text-center text-gray-400 mt-3 italic">📷 Sin foto disponible</p>
+@endif
+
                     <div class="flex gap-2 mt-3">
                         <span class="px-3 py-1 text-xs font-semibold rounded-full 
                             @if($bien->bien_uso) bg-blue-100 text-blue-800 @else bg-purple-100 text-purple-800 @endif">

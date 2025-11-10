@@ -44,14 +44,14 @@ class GestorInventario extends Component
         }
     }
 
-    // Ver foto de remito
+    // Ver foto del bien
     public function verFotoBien($bienId)
     {
-        $bien = Bien::with('remito')->find($bienId);
-        
-        if ($bien && $bien->remito && $bien->remito->foto_remito) {
+        $bien = Bien::find($bienId);
+
+        if ($bien && $bien->foto) {
             $this->bienSeleccionado = $bien;
-            $this->fotoUrl = asset('storage/' . $bien->remito->foto_remito);
+            $this->fotoUrl = asset('storage/' . $bien->foto);
             $this->mostrarModalFoto = true;
         } else {
             session()->flash('error', 'No hay foto disponible para este bien.');
@@ -65,7 +65,7 @@ class GestorInventario extends Component
         $this->bienSeleccionado = null;
     }
 
-    // Asignar bienes + generar QR (sin usar extensiones extra)
+    // ✅ Asignar bienes y generar QR automáticamente
     public function asignarBienes()
     {
         $this->validate([
@@ -99,38 +99,34 @@ class GestorInventario extends Component
                     'dependencia_id' => $this->dependencia_id,
                 ]);
 
-                // 🔹 Contenido del QR
-                $contenidoQR = "Bien N° {$bien->numero_inventario}\n"
-                    . "Descripción: {$bien->descripcion}\n"
-                    . "Dependencia: {$dependencia->nombre}\n"
-                    . "Asignado el: {$this->fecha_asignacion}";
+                // ✅ Generar URL interna para el consultor
+                $url = route('consultor.panel') . '?id=' . $bien->id;
 
-                $contenidoQR = mb_convert_encoding($contenidoQR, 'UTF-8', 'auto');
+                // Ruta del QR
+                $rutaQR = "qrcodes/bien_{$bien->id}.svg";
 
-                // 🔹 Ruta
-                $nombreArchivo = "qr_bien_{$bien->id}.svg";
-                $rutaQR = "qrcodes/{$nombreArchivo}";
-
-                // 🔹 Generar QR SVG (sin Imagick)
+                // Generar y guardar el QR
                 Storage::disk('public')->put(
                     $rutaQR,
                     QrCode::format('svg')
-                        ->size(200)
+                        ->size(250)
                         ->encoding('UTF-8')
                         ->errorCorrection('H')
-                        ->generate($contenidoQR)
+                        ->generate($url)
                 );
 
-                // Guardar la ruta
+                // Guardar la ruta del QR en el bien
                 $bien->update(['codigo_qr' => $rutaQR]);
             }
         }
 
+        // ✅ Mensaje de éxito
         session()->flash(
             'message',
-            count($this->bienesSeleccionados) . ' bien(es) asignado(s) correctamente a ' . $dependencia->nombre
+            count($this->bienesSeleccionados) . ' bien(es) asignado(s) correctamente y se generó su código QR.'
         );
 
+        // Resetear formulario
         $this->reset(['bienesSeleccionados', 'dependencia_id', 'observacion']);
         $this->fecha_asignacion = date('Y-m-d');
     }

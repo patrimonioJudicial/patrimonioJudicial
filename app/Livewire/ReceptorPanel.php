@@ -25,6 +25,9 @@ class ReceptorPanel extends Component
     public $tipo_compra = 'directa'; // o licitacion
     public $mostrarRegistros = false;
     public $editandoBien = null;
+    
+    // 🔑 ¡NUEVO! Contador único para keys
+    public $nextId = 1;
 
 
     public function mount()
@@ -43,6 +46,7 @@ class ReceptorPanel extends Component
     private function formularioVacio()
     {
         return [
+            'id' => $this->nextId++, // 🔑 ¡NUEVO! ID único para cada formulario
             'cuenta_id' => '',
             'numero_inventario' => '',
             'descripcion' => '',
@@ -61,10 +65,17 @@ class ReceptorPanel extends Component
         $this->formularios[] = $this->formularioVacio();
     }
 
-    public function eliminarFormulario($index)
+    // 🔧 ¡MODIFICADO! Ahora elimina por el ID único, no por índice
+    public function eliminarFormulario($formId)
     {
-        unset($this->formularios[$index]);
-        $this->formularios = array_values($this->formularios);
+        $this->formularios = array_filter($this->formularios, function($form) use ($formId) {
+            return $form['id'] !== $formId;
+        });
+        
+        // También eliminamos la foto correspondiente si existe
+        if (isset($this->fotos[$formId])) {
+            unset($this->fotos[$formId]);
+        }
     }
 
     public function updatedFormularios($value, $key)
@@ -123,14 +134,13 @@ class ReceptorPanel extends Component
     }
 
     // 🔹 Crear los bienes asociados
-    foreach ($this->formularios as $index => $form) {
+    foreach ($this->formularios as $form) {
         $numeroBase = intval($form['numero_inventario']);
         
-        // 📸 Guardar la foto individual si existe
-        $rutaFoto = null;
-        if (isset($this->fotos[$index]) && $this->fotos[$index]) {
-            $rutaFoto = $this->fotos[$index]->store('bienes', 'public');
-        }
+        // 📸 Guardar la foto individual si existe (usando el ID único del formulario)
+      if (isset($this->fotos[$form['id']]) && $this->fotos[$form['id']]) {
+    $rutaFoto = $this->fotos[$form['id']]->store('bienes', 'public');
+}
 
         for ($i = 0; $i < $form['cantidad']; $i++) {
             $numeroInventario = $numeroBase + $i;
@@ -147,21 +157,31 @@ class ReceptorPanel extends Component
                 'estado'           => 'stock',
                 'proveedor_id'     => $form['proveedor_id'],
                 'remito_id'        => $remito->id,
-                'foto_remito'      => $rutaFoto, // ✅ Foto individual por bien
+                'foto'      => $rutaFoto, // ✅ Foto individual por bien
             ]);
         }
     }
 
     session()->flash('message', 'Bienes registrados correctamente');
+    
+    // 🔄 Reiniciar correctamente
+    $this->nextId = 1; // Resetear contador
     $this->formularios = [$this->formularioVacio()];
     $this->fotos = []; // ✅ Limpiar array de fotos
+    $this->numero_remito = '';
+    $this->numero_expediente = '';
+    $this->orden_provision = '';
 }
 
 
     public function cancelar()
 {
+    $this->nextId = 1; // Resetear contador
     $this->formularios = [$this->formularioVacio()];
     $this->fotos = []; // ✅ Limpiar fotos
+    $this->numero_remito = '';
+    $this->numero_expediente = '';
+    $this->orden_provision = '';
 }
 
     public function render()

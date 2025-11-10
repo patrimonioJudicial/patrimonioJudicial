@@ -67,7 +67,8 @@
         <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Monto Total</th>
         <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Proveedor</th>
         <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Fecha Recepción</th>
-        <th class="px-4 py-2 text-center text-sm font-semibold text-gray-700">Foto Remito</th>
+        <th class="px-4 py-2 text-center text-sm font-semibold text-gray-700">Foto del Bien</th>
+
     </tr>
 </thead>
 
@@ -149,19 +150,19 @@
                     ? \Carbon\Carbon::parse($bien->remito->fecha_recepcion)->format('d/m/Y')
                     : '-' }}
             </td>
-            <!-- Foto del Remito -->
+<!-- Foto del Bien -->
 <td class="px-4 py-2 text-sm text-gray-800 text-center">
-    @if ($bien->remito && $bien->remito->foto_remito)
-        <a href="{{ asset('storage/' . $bien->remito->foto_remito) }}" target="_blank"
-           class="inline-block">
-            <img src="{{ asset('storage/' . $bien->remito->foto_remito) }}" 
-                 alt="Foto del Remito" 
+    @if ($bien->foto)
+        <a href="{{ asset('storage/' . $bien->foto) }}" target="_blank" class="inline-block">
+            <img src="{{ asset('storage/' . $bien->foto) }}" 
+                 alt="Foto del Bien" 
                  class="w-14 h-14 object-cover rounded-md border border-gray-300 shadow-sm hover:scale-105 transition-transform duration-200 ease-out">
         </a>
     @else
         <span class="text-gray-400 italic">Sin foto</span>
     @endif
 </td>
+
 
 
         </tr>
@@ -267,13 +268,14 @@
 
         <!-- 🔁 Se repite un formulario por cada bien -->
         @foreach($formularios as $index => $form)
-        <div class="border border-gray-200 rounded-lg p-5 bg-white space-y-6 relative">
+        {{-- 🔑 ¡CRÍTICO! wire:key usa el ID único del formulario --}}
+        <div wire:key="form-{{ $form['id'] }}" class="border border-gray-200 rounded-lg p-5 bg-white space-y-6 relative">
 
             <!-- 🗑️ Botón para eliminar formulario -->
             @if(count($formularios) > 1)
     <button 
         type="button"
-        wire:click="eliminarFormulario({{ $index }})"
+        wire:click="eliminarFormulario({{ $form['id'] }})"
         class="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 text-xs bg-red-50 text-red-600 border border-red-200 rounded-md hover:bg-red-100 hover:text-red-700 transition"
         title="Eliminar este bien">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -370,23 +372,20 @@
                         @endforeach
                     </select>
                 </div>
+<label class="block text-sm font-medium text-gray-700 mb-1">Foto del Bien</label>
+<input 
+    type="file" 
+    wire:model="fotos.{{ $form['id'] }}"
+    accept="image/*"
+    class="w-full px-3 py-2 border-gray-200 bg-white rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
 
-                <div class="col-span-1">
-    <label class="block text-sm font-medium text-gray-700 mb-1">Foto del Bien</label>
-    <input 
-        type="file" 
-        wire:model="fotos.{{ $index }}"
-        accept="image/*"
-        class="w-full px-3 py-2 border-gray-200 bg-white rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-    
-    @if (isset($fotos[$index]))
-        <div class="mt-2">
-            <img src="{{ $fotos[$index]->temporaryUrl() }}" 
-                 class="w-32 h-32 object-cover rounded-lg border">
-        </div>
-    @endif
-</div>
-            </div>
+@if (isset($fotos[$form['id']]))
+    <div class="mt-2">
+        <img src="{{ $fotos[$form['id']]->temporaryUrl() }}" 
+             class="w-32 h-32 object-cover rounded-lg border">
+    </div>
+@endif
+  
 
             <div class="grid grid-cols-2 gap-6">
                 <div>

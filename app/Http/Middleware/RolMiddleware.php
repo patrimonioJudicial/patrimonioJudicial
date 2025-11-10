@@ -12,27 +12,27 @@ class RolMiddleware
     {
         $user = Auth::user();
 
-        // Si no está autenticado
+        // 🚫 Si no hay usuario logueado
         if (!$user) {
             abort(403, 'Debes iniciar sesión.');
         }
 
-        // Si el usuario no está activo
-        if (isset($user->activo) && (int) $user->activo !== 1) {
+        // 🚫 Si el usuario está inactivo (si tenés campo activo en la tabla)
+        if (property_exists($user, 'activo') && (int) $user->activo !== 1) {
             abort(403, 'Usuario inactivo.');
         }
 
-        // Si el usuario es administrador → acceso total
-        if ($user->rol?->nombre === 'administrador') {
+        // ✅ ADMIN: acceso total
+        if (isset($user->rol) && strtolower($user->rol->nombre) === 'administrador') {
             return $next($request);
         }
 
-        // Si el rol del usuario está en los permitidos
-        if (in_array($user->rol?->nombre, $roles)) {
+        // ✅ Si el rol del usuario coincide con alguno de los roles permitidos
+        if (isset($user->rol) && in_array(strtolower($user->rol->nombre), array_map('strtolower', $roles))) {
             return $next($request);
         }
 
-        // Caso contrario, acceso denegado
+        // 🚫 Caso contrario, acceso denegado
         abort(403, 'Acceso denegado. No tienes permisos para esta sección.');
     }
 }

@@ -256,11 +256,27 @@ class DataentryPanel extends Component
         );
     }
 
+
+    
+public function exportarTodo()
+{
+    $this->showExportModal = false;
+
+    return \Maatwebsite\Excel\Facades\Excel::download(
+        new \App\Exports\BienesDocumentacionExport(),
+        'bienes_documentacion_todos_' . now()->format('Ymd_His') . '.xlsx'
+    );
+}
+
+
     public function seleccionarBien($bienId)
 {
-    // Deshabilitado - ahora solo se seleccionan grupos
-    return;
+    $this->grupoSeleccionado = null; // limpiar grupo activo
+    $this->bienesDelGrupo = []; // limpiar posibles grupos previos
+    $this->bienSeleccionado = $bienId;
+    $this->cargarDocumentacion($bienId);
 }
+
 
 // Nuevo método para seleccionar grupo completo
 public function seleccionarGrupo($key)

@@ -36,9 +36,11 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
-| Rutas por rol
+| RUTAS POR ROL (con acceso total para administrador)
 |--------------------------------------------------------------------------
 */
+
+// 🔹 Panel de ADMIN
 Route::middleware(['auth', 'rol:administrador'])
     ->prefix('admin')
     ->name('admin.')
@@ -46,28 +48,32 @@ Route::middleware(['auth', 'rol:administrador'])
         Route::get('/', AdminPanel::class)->name('panel');
     });
 
-Route::middleware(['auth', 'rol:recepcionista'])
+// 🔹 Panel del RECEPTOR
+Route::middleware(['auth', 'rol:administrador,recepcionista'])
     ->prefix('receptor')
     ->name('receptor.')
     ->group(function () {
         Route::get('/', ReceptorPanel::class)->name('panel');
     });
 
-Route::middleware(['auth', 'rol:gestorInventario'])
+// 🔹 Panel del GESTOR DE INVENTARIO
+Route::middleware(['auth', 'rol:administrador,gestorInventario'])
     ->prefix('gestor')
     ->name('gestor.')
     ->group(function () {
         Route::get('/', GestorInventario::class)->name('panel');
     });
 
-Route::middleware(['auth', 'rol:dataEntry'])
+// 🔹 Panel del DATA ENTRY
+Route::middleware(['auth', 'rol:administrador,dataEntry'])
     ->prefix('dataentry')
     ->name('dataentry.')
     ->group(function () {
         Route::get('/', DataentryPanel::class)->name('panel');
     });
 
-Route::middleware(['auth', 'rol:consultor'])
+// 🔹 Panel del CONSULTOR
+Route::middleware(['auth', 'rol:administrador,consultor'])
     ->prefix('consultor')
     ->name('consultor.')
     ->group(function () {
@@ -109,4 +115,4 @@ Route::get('/exportar-excel/{inicio}/{fin}', function ($inicio, $fin) {
 | Autenticación
 |--------------------------------------------------------------------------
 */
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

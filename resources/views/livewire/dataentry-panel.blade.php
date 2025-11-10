@@ -152,27 +152,41 @@
                     </div>
                 </div>
             @else
-                {{-- Bien individual - NO CLICKEABLE --}}
-                @php $b = $grupo['items']->first(); @endphp
-                <div class="p-3 border rounded-lg bg-gray-50 opacity-60">
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1">
-                            <p class="font-semibold text-gray-900">{{ $b->numero_inventario }}</p>
-                            <p class="text-sm text-gray-600">{{ $b->descripcion }}</p>
-                            <div class="flex gap-2 mt-1 flex-wrap">
-                                <span class="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded">
-                                    {{ $b->cuenta->codigo ?? 'N/A' }}
-                                </span>
-                                @if($b->remito)
-                                <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
-                                    Remito: {{ $b->remito->numero_remito }}
-                                </span>
-                                @endif
-                            </div>
-                            <p class="text-xs text-amber-600 mt-1">⚠️ Bien individual - No se puede documentar en grupo</p>
-                        </div>
-                    </div>
-                </div>
+                {{-- Bien individual - CLICKEABLE --}}
+@php $b = $grupo['items']->first(); @endphp
+<div wire:click="seleccionarBien({{ $b->id }})"
+     class="border rounded-lg bg-[#f8faff] hover:bg-indigo-50 cursor-pointer transition-colors p-4 mb-2">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <p class="font-semibold text-gray-800">{{ $b->numero_inventario }}</p>
+            <p class="text-gray-600 text-sm">{{ strtoupper($b->descripcion) }}</p>
+            <span class="text-xs text-gray-400">{{ $b->cuenta->codigo ?? '' }}</span>
+        </div>
+
+        <div class="flex flex-wrap gap-2 mt-3 sm:mt-0">
+            <span class="px-2 py-0.5 text-xs rounded bg-indigo-100 text-indigo-700 font-medium">
+                Remito: {{ $b->remito->numero_remito ?? 'N/A' }}
+            </span>
+            <span class="px-2 py-0.5 text-xs rounded bg-yellow-100 text-yellow-700 font-medium">
+                Expediente: {{ $b->remito->numero_expediente ?? 'N/A' }}
+            </span>
+            <span class="px-2 py-0.5 text-xs rounded bg-pink-100 text-pink-700 font-medium">
+                O.P.: {{ $b->remito->orden_provision ?? 'N/A' }}
+            </span>
+        </div>
+    </div>
+
+    <div class="mt-3 flex items-center gap-1 text-sm text-gray-600 border-t border-gray-100 pt-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 9v2m0 4v2m0-4h.01M12 5v.01M12 19v.01" />
+        </svg>
+        Bien individual – No se puede documentar en grupo
+    </div>
+</div>
+
+
+
+                   
             @endif
         @empty
             <div class="text-center py-12 text-gray-500">
@@ -353,6 +367,115 @@
     </div>
 @endif
 
+@if ($bienSeleccionado && !$grupoSeleccionado)
+    @php 
+        $bien = App\Models\Bien::with('remito')->find($bienSeleccionado);
+    @endphp
+
+    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+        <h3 class="font-semibold text-gray-800 flex items-center gap-2 mb-4">
+            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Documentación para el Bien {{ $bien->numero_inventario }}
+        </h3>
+
+        <form wire:submit.prevent="guardarDocumentacion">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+                <!-- Número de Acta -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Número de Acta</label>
+                    <input type="text" wire:model="numero_acta" placeholder="Ej: ACTA-2025-0001"
+                        class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <!-- Fecha de Acta -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Acta</label>
+                    <input type="date" wire:model="fecha_acta"
+                        class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <!-- Número de Resolución -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Número de Resolución</label>
+                    <input type="text" wire:model="numero_resolucion" placeholder="Ej: RES-2025-0045"
+                        class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <!-- Número de Factura -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Número de Factura</label>
+                    <input type="text" wire:model="numero_factura" placeholder="Ej: FAC-A-0000001"
+                        class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <!-- Fecha de Factura -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Factura</label>
+                    <input type="date" wire:model="fecha_factura"
+                        class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <!-- Monto -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Monto</label>
+                    <input type="number" step="0.01" wire:model="monto"
+                        class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <!-- Partida Presupuestaria -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Partida Presupuestaria</label>
+                    <input type="text" wire:model="partida_presupuestaria" placeholder="Ej: 3.2.1 o 293-45"
+                        class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <!-- Orden de Pago -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Orden de Pago</label>
+                    <input type="text" wire:model="orden_pago" placeholder="Ej: OP-2025-0009"
+                        class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <!-- Estado -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                    <select wire:model="estado"
+                        class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="pendiente">Pendiente</option>
+                        <option value="completo">Completo</option>
+                        <option value="revisado">Revisado</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Observaciones -->
+            <div class="mt-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
+                <textarea wire:model="observaciones" rows="3"
+                    placeholder="Observaciones adicionales..."
+                    class="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+            </div>
+
+            <div class="flex justify-end mt-6 gap-2">
+                <button type="button" wire:click="$set('bienSeleccionado', null)" 
+                    class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Cancelar
+                </button>
+                <button type="submit"
+                    class="px-4 py-2 bg-indigo-900 text-white rounded-lg hover:bg-indigo-800 transition-colors flex items-center gap-2">
+                    Guardar Documentación
+                </button>
+            </div>
+        </form>
+    </div>
+@endif
+
+
+
    <!-- Modal Exportar a Excel -->
 <div x-data="{ open: @entangle('showExportModal') }" x-show="open"
     class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
@@ -387,6 +510,12 @@
                     class="px-4 py-2 bg-indigo-700 text-white rounded hover:bg-indigo-800 flex items-center gap-2">
                     <i class="bi bi-download"></i> Exportar
                 </button>
+                <button type="button" 
+    wire:click="exportarTodo"
+    class="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-800">
+    Exportar Todo
+</button>
+
             </div>
         </form>
     </div>
