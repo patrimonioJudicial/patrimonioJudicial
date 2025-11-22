@@ -1,0 +1,57 @@
+stages:
+  - install
+  - build
+  - test
+
+variables:
+  PHP_VERSION: "8.2"
+  NODE_VERSION: "20"
+
+# Job 1: Instalar dependencias PHP
+install_php:
+  stage: install
+  image: php:${PHP_VERSION}
+  before_script:
+    - apt-get update && apt-get install -y git unzip libzip-dev curl
+    - docker-php-ext-install zip pdo_mysql
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+  script:
+    - composer install --no-interaction --prefer-dist --optimize-autoloader
+    - if [ ! -f .env ]; then cp .env.example .env; fi
+    - php artisan key:generate
+  artifacts:
+    paths:
+      - vendor/
+      - .env
+
+# Job 2: Build assets (Node)
+build_assets:
+  stage: build
+  image: node:${NODE_VERSION}
+  script:
+    - npm ci || npm install
+    - npm run build
+  artifacts:
+    paths:
+      - public/build
+      - resources/js
+      - resources/css
+  dependencies:
+    - install_php
+
+# Job 3: Tests Laravel
+test_app:
+  stage: test
+  image: php:${PHP_VERSION}
+  before_script:
+    - apt-get update && apt-get install -y git unzip libzip-dev curl
+    - docker-php-ext-install zip pdo_mysql
+  script:
+    - php artisan test
+  dependencies:
+    - install_php
+  artifacts:
+    when: always
+    paths:
+      - storage/logs
+

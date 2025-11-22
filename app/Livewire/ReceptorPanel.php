@@ -134,33 +134,40 @@ class ReceptorPanel extends Component
     }
 
     // 🔹 Crear los bienes asociados
-    foreach ($this->formularios as $form) {
-        $numeroBase = intval($form['numero_inventario']);
-        
-        // 📸 Guardar la foto individual si existe (usando el ID único del formulario)
-      if (isset($this->fotos[$form['id']]) && $this->fotos[$form['id']]) {
-    $rutaFoto = $this->fotos[$form['id']]->store('bienes', 'public');
+foreach ($this->formularios as $index => $form) {
+
+    $numeroBase = intval($form['numero_inventario']);
+
+    // Siempre inicializamos
+    $rutaFoto = null;
+
+    // 📸 Foto usando el índice real que Livewire genera
+    if (isset($this->fotos[$index])) {
+        $rutaFoto = $this->fotos[$index]->store('bienes', 'public');
+    }
+
+    // Crear tantos bienes como cantidad
+    for ($i = 0; $i < $form['cantidad']; $i++) {
+        $numeroInventario = $numeroBase + $i;
+
+        Bien::create([
+            'cuenta_id'        => $form['cuenta_id'],
+            'numero_inventario'=> $numeroInventario,
+            'descripcion'      => $form['descripcion'],
+            'cantidad'         => 1,
+            'precio_unitario'  => $form['precio_unitario'],
+            'monto_total'      => $form['precio_unitario'],
+            'bien_uso'         => $form['tipo_bien'] === 'uso',
+            'bien_consumo'     => $form['tipo_bien'] === 'consumo',
+            'estado'           => 'stock',
+            'proveedor_id'     => $form['proveedor_id'],
+            'remito_id'        => $remito->id,
+            'foto'             => $rutaFoto, // AHORA SE GUARDA SIEMPRE
+        ]);
+    }
 }
 
-        for ($i = 0; $i < $form['cantidad']; $i++) {
-            $numeroInventario = $numeroBase + $i;
 
-            Bien::create([
-                'cuenta_id'        => $form['cuenta_id'],
-                'numero_inventario'=> $numeroInventario,
-                'descripcion'      => $form['descripcion'],
-                'cantidad'         => 1,
-                'precio_unitario'  => $form['precio_unitario'],
-                'monto_total'      => $form['precio_unitario'],
-                'bien_uso'         => $form['tipo_bien'] === 'uso',
-                'bien_consumo'     => $form['tipo_bien'] === 'consumo',
-                'estado'           => 'stock',
-                'proveedor_id'     => $form['proveedor_id'],
-                'remito_id'        => $remito->id,
-                'foto'      => $rutaFoto, // ✅ Foto individual por bien
-            ]);
-        }
-    }
 
     session()->flash('message', 'Bienes registrados correctamente');
     
